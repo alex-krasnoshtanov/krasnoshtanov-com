@@ -263,8 +263,24 @@
    --------------------------------------------------------------------------- */
 @layer motion {
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    #work:has(.project:hover) .project:not(:hover) { opacity: 0.45; }
     .project { transition: opacity 260ms ease; }
+
+    /* The section filling the screen is the subject.
+
+       This was `#work:has(.project:hover) .project:not(:hover)` — the subject
+       was wherever the POINTER was. Two things wrong with that. Chromium
+       re-resolves :hover during a scroll and Firefox does not, so on Firefox
+       the highlight stayed on whatever the cursor was last over until you
+       nudged the mouse. And more basically, a resting mouse is not a statement
+       about what someone is reading; it is just where they left it.
+
+       Hover is gone rather than kept as an override, because an override that
+       is stale on one engine is the bug, not the fallback.
+
+       Scoped to [data-attend], which the script sets only when it is going to
+       keep data-current up to date — without that guard a page with no
+       JavaScript would dim every section to 45% and leave them there. */
+    [data-attend] #work .project:not([data-current]) { opacity: 0.45; }
   }
 
   @media (prefers-reduced-motion: no-preference) {
