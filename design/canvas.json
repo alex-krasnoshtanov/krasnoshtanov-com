@@ -1,0 +1,23 @@
+{
+  "pages": [
+    { "id": "page-1", "name": "Site" },
+    { "id": "page-2", "name": "Directions" }
+  ],
+  "artboards": [
+    { "file": "Main.dc.html",     "page": "page-1", "x": 0,    "y": 0, "w": 1440, "h": 900, "title": "Hero" },
+    { "file": "Shadow.dc.html",   "page": "page-1", "x": 1560, "y": 0, "w": 1440, "h": 900, "title": "Detection by Shadow" },
+    { "file": "Timeline.dc.html", "page": "page-1", "x": 3120, "y": 0, "w": 1440, "h": 900, "title": "Emotion Timeline" },
+    { "file": "Mobile.dc.html",   "page": "page-1", "x": 4680, "y": 0, "w": 390,  "h": 844, "title": "Mobile 390" },
+    { "file": "DirectionB.dc.html", "page": "page-2", "x": 0,    "y": 0, "w": 880, "h": 560, "title": "Direction B - Build log" },
+    { "file": "DirectionC.dc.html", "page": "page-2", "x": 1000, "y": 0, "w": 880, "h": 560, "title": "Direction C - Drawing sheet" }
+  ],
+  "annotations": [
+    { "id": "brief", "page": "page-1", "x": 0, "y": -196, "w": 470,
+      "text": "Direction A, \"Instrument\": cool paper, hairline rules, mono numerals. Two accents that MEAN something - blue for the system's answer, warm for where it disagrees with itself or declines to answer. Boldness spent only in the hero.\n\nBoth accents sit at oklch L 0.52, measured at 5.00:1 and 5.36:1 on this paper. They started at 0.55, where the blue measured 4.40:1 and failed." },
+    { "id": "note-data", "page": "page-1", "x": 1560, "y": -196, "w": 450,
+      "text": "Every number and every shape on these two boards is generated from the same vendored JSON the real site uses - no hand-copied figures. Two errors this caught:\n\n- The frame is 720x480, not 1280x720. At the wrong size every right-side box drew INSIDE the frame, which is the opposite of the point.\n- The chart used to show two classifiers on one transcript (17/47 agree). The headline is about swapping the TRANSCRIBER (61.9% over 2,737 shared seconds), so the tracks now show that instead." },
+    { "id": "note-dirs", "page": "page-2", "x": 0, "y": -150, "w": 520,
+      "text": "Two alternates on different axes, kept low-fi on purpose: picking a direction does not need polish. Each carries its own tradeoff. Say which to pursue and it gets built into the Site page." }
+  ],
+  "launch": { "view": "canvas", "page": "page-1" }
+}

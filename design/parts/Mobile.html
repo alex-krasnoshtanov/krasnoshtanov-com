@@ -1,0 +1,99 @@
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+/*@TOKENS*/
+  /* 390px frame. Every step in the scale bottoms out at its clamp minimum
+     here, which is what the non-fluid --step--2 floor exists to protect. */
+  .claim { font-size: 1.85rem; font-weight: 600; line-height: 1.07;
+           letter-spacing: -0.02em; margin: 0; }
+  .claim em { font-style: normal; color: var(--signal); }
+  .ticks { height: 9px; border-top: 1px solid var(--rule-firm);
+           background-image: repeating-linear-gradient(to right,
+             var(--rule-firm) 0 1px, transparent 1px 32px);
+           background-size: 100% 5px; background-repeat: no-repeat; }
+  /* 44px minimum target, two per row rather than a four-deep stack. */
+  .links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+           gap: 8px; }
+  .links a { display: flex; align-items: center; min-height: 44px;
+             padding: 0 12px; border: 1px solid var(--rule-firm);
+             text-decoration: none; color: var(--ink);
+             font-size: var(--step--1); }
+  .stat { display: flex; justify-content: space-between; align-items: baseline;
+          padding: 8px 0; border-bottom: 1px solid var(--rule); }
+  .stat span:first-child { font-size: var(--step--2); color: var(--ink-soft); }
+  .stat span:last-child { font-family: var(--font-mono); font-weight: 500;
+                          font-size: var(--step--1); font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 390px; min-height: 844px; display: flex; flex-direction: column; background: var(--paper)">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--rule)">
+    <span class="tag">krasnoshtanov.com</span>
+    <span class="tag">2026&#8209;09&#8209;15</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 14px; padding: 24px 16px 20px">
+    <h1 class="mono" style="font-size: var(--step--1); font-weight: 500; letter-spacing: 0.06em; margin: 0">Oleksii Krasnoshtanov</h1>
+    <p class="claim">I build computer&#8209;vision and NLP systems, then <em>keep them running</em>.</p>
+    <p style="margin: 0; font-size: var(--step--1); line-height: 1.5; color: var(--ink-soft)">Applied Data Science &amp; AI, Breda. Four of these shipped to someone other than a grader.</p>
+    <div class="links">
+      <a href="https://krasnoshtanov.com/cv.pdf">R&#233;sum&#233; (PDF)</a>
+      <a href="https://github.com/alex-krasnoshtanov">GitHub</a>
+      <a href="https://linkedin.com/in/oleksii-krasnoshtanov/">LinkedIn</a>
+      <a href="mailto:oleksiikrasnoshtanov@gmail.com">Email</a>
+    </div>
+  </div>
+
+  <div style="padding: 0 16px">
+    <div class="ticks"></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px; padding: 18px 16px 24px">
+    <span class="tag">Detection by Shadow &#183; won</span>
+    <span style="font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em; line-height: 1.15">The person is outside the frame.</span>
+
+    <svg viewBox="-350 -30 1440 545" style="width: 100%; height: auto; display: block" role="img" aria-label="A dashed camera frame with four predicted bounding boxes sitting entirely outside it, two beyond the left edge and two beyond the right. The shaded wedge inside the frame is an indicative shadow, not real image data.">
+      <defs>
+        <pattern id="outside-m" width="10" height="10" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="10" stroke="var(--rule-firm)" stroke-width="1.6"/>
+        </pattern>
+      </defs>
+      <rect x="-350" y="-30" width="350" height="545" fill="url(#outside-m)" opacity="0.55"/>
+      <rect x="{{frameW}}" y="-30" width="370" height="545" fill="url(#outside-m)" opacity="0.55"/>
+      <rect x="0" y="0" width="{{frameW}}" height="{{frameH}}" fill="none"
+            stroke="var(--ink)" stroke-width="6" stroke-dasharray="26 18"/>
+      <polygon points="0,300 250,{{frameH}} 0,{{frameH}}" fill="var(--signal)" opacity="0.12"/>
+      <sc-for list="{{boxes}}" as="b" hint-placeholder-count="4">
+        <rect x="{{b.x}}" y="{{b.y}}" width="{{b.w}}" height="{{b.h}}"
+              fill="none" stroke="var(--signal)" stroke-width="7"/>
+      </sc-for>
+    </svg>
+    <p class="tag" style="margin: 0; line-height: 1.6">Four real predictions, two per side. The wedge is indicative; the source frames are not shown.</p>
+
+    <div>
+      <div class="stat"><span>hidden test set, mean IoU</span><span style="color: var(--signal)">0.626</span></div>
+      <div class="stat"><span>predicted left / right of frame</span><span>{{left}} / {{right}}</span></div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+/*@DATA*/
+    return {
+      boxes: BOXES.map(function (b) {
+        return { x: b.v5[0], y: b.v5[1], w: b.v5[2] - b.v5[0], h: b.v5[3] - b.v5[1] };
+      }),
+      frameW: FRAME[0],
+      frameH: FRAME[1],
+      left: LEFT,
+      right: RIGHT
+    };
+  }
+}
+</script>

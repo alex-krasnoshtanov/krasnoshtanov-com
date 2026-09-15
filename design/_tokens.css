@@ -1,0 +1,41 @@
+  /* Structural values lifted from Family-Website/packages/theme/tokens.css
+     (type scale, spacing, --measure). Palette is new: the PEC green is the
+     family business's identity and does not belong on a personal site. */
+  :root {
+    --paper:     oklch(0.968 0.004 250);
+    --paper-2:   oklch(0.945 0.005 250);
+    --ink:       oklch(0.235 0.018 250);
+    --ink-soft:  oklch(0.470 0.014 250);
+    --rule:      oklch(0.870 0.006 250);
+    --rule-firm: oklch(0.760 0.010 250);
+    /* two accents, same L and C, hue apart: signal = the system's answer,
+       warn = where it disagrees with itself or declines to answer */
+    --signal:    oklch(0.52 0.13 248);
+    --warn:      oklch(0.52 0.13 28);
+    --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+    --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+    --step--2: 0.75rem;                                    /* not fluid: 12px floor for tracked mono */
+    --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+    --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+    --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+    --gap-xs: 0.5rem; --gap-s: 1rem; --gap-m: 2rem; --gap-l: 4rem;
+    --measure: 54ch; --shell: 1180px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: var(--font-display); font-size: var(--step-0);
+         -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tag { font-family: var(--font-mono); font-size: var(--step--2);
+         letter-spacing: 0.08em; color: var(--ink-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+         font-weight: 500; }

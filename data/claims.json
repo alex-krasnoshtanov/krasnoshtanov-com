@@ -1,0 +1,281 @@
+{
+  "_comment": [
+    "Every number rendered on the page, and why anyone should believe it.",
+    "",
+    "This exists because of a rule from Emotion-Timeline's own add-stage skill:",
+    "'Every published number is reproducible or cross-checked. No exceptions.",
+    "A figure in the README that nobody can regenerate is decoration.' Two",
+    "figures in that project failed re-derivation once (an AssemblyAI WER that",
+    "went 0.61% -> 0.81%, and an NPEC F1 that no repository records at all),",
+    "which is why `denied` exists below.",
+    "",
+    "class:",
+    "  recompute  scripts/check.mjs recomputes it from the vendored data and",
+    "             fails the build on a mismatch. `check` names the function.",
+    "  crosscheck not recomputable from raw rows, but it must agree with a",
+    "             second independently-recorded value. `check` names that too.",
+    "  attested   recorded in a named source file and not recomputable here.",
+    "             Rendered as a figure, never described as reproduced.",
+    "",
+    "`text` is asserted VERBATIM in dist/index.html. That is the part that",
+    "matters: it catches a number drifting in the PROSE, which is where they",
+    "actually rot, not only in a data file."
+  ],
+
+  "claims": [
+    {
+      "id": "shadow-floor",
+      "text": "0.4295",
+      "class": "recompute",
+      "check": "perSideMeanBoxFloor",
+      "source": "data/shadow.json gt[] — 1692 training annotations",
+      "note": "Per-side predict-the-mean. Left 852 -> 0.4034, right 840 -> 0.4561."
+    },
+    {
+      "id": "shadow-global-floor",
+      "text": "0.0000",
+      "class": "recompute",
+      "check": "globalMeanBoxFloor",
+      "source": "data/shadow.json gt[]",
+      "note": "One mean box for every frame overlaps nothing, because the boxes sit on both sides. This is the point of the section."
+    },
+    {
+      "id": "shadow-side-split",
+      "text": "229 / 185",
+      "class": "recompute",
+      "check": "predictedSideSplit",
+      "source": "data/shadow.json v5_all[] — all 414 test predictions"
+    },
+    {
+      "id": "shadow-abstentions",
+      "text": "407 / 414",
+      "class": "recompute",
+      "check": "directionAbstentions",
+      "source": "data/shadow.json v5_all[]"
+    },
+    {
+      "id": "shadow-base-rate",
+      "text": "48.3%",
+      "class": "recompute",
+      "check": "walkingBaseRate",
+      "source": "data/shadow.json gt[] — mean of walking_into_frame_bool, 0.4835"
+    },
+    {
+      "id": "shadow-frame",
+      "text": "720×480",
+      "class": "attested",
+      "source": "Detection-by-Shadow docs/dataset.md — 'Resolution | 720 x 480, constant'"
+    },
+    {
+      "id": "shadow-direct",
+      "text": "0.4675",
+      "class": "attested",
+      "source": "Detection-by-Shadow docs/experiments.md",
+      "note": "runs/holdout/run.json records loss only (best_val_loss 1.310), not IoU. Not recomputable from the repository."
+    },
+    {
+      "id": "shadow-decomposed",
+      "text": "0.6096",
+      "class": "attested",
+      "source": "Detection-by-Shadow docs/experiments.md",
+      "note": "Same evidence class as 0.4675. Would become recomputable by re-evaluating the holdout from model_seed42.pt."
+    },
+    {
+      "id": "shadow-hidden",
+      "text": "0.626",
+      "class": "attested",
+      "source": "BrabantHack organisers' leaderboard, via Detection-by-Shadow README",
+      "note": "Unrecomputable by construction: the test labels were never released. Phrasing names the hidden test set."
+    },
+    {
+      "id": "shadow-direction-auc",
+      "text": "0.606",
+      "class": "attested",
+      "source": "Detection-by-Shadow docs/experiments.md"
+    },
+
+    {
+      "id": "timeline-scene-agreement",
+      "text": "17 / 47",
+      "class": "recompute",
+      "check": "sceneAgreement",
+      "source": "data/emotion-timeline.json scenes[] — count of agreed == 1"
+    },
+    {
+      "id": "timeline-second-agreement",
+      "text": "61.9% of 2,737",
+      "class": "recompute",
+      "check": "agreementByIntegerSecond",
+      "source": "data/emotion-timeline.json scenes[] vs scenes_whisper[] — PRIMARY emotion of each, i.e. the same classifier over two different transcripts",
+      "note": "METHOD IS LOAD-BEARING, and this number has already moved once. A scene spanning [start, end) covers every integer second t with ceil(start) <= t < end; truncating end instead drops the last second of every scene and gives 62.1% over 2,667. The check pins the convention, not the digits."
+    },
+    {
+      "id": "timeline-moved",
+      "text": "38%",
+      "class": "recompute",
+      "check": "agreementByIntegerSecond",
+      "source": "The complement of the figure above, from the same computation"
+    },
+    {
+      "id": "timeline-unshared",
+      "text": "359 of the 3,096 seconds",
+      "class": "recompute",
+      "check": "agreementByIntegerSecond",
+      "source": "data/emotion-timeline.json — duration_s minus the shared span",
+      "note": "Stated because a reader who checks 2,737 against 3,096 will find the gap first. These are seconds one transcriber segmented and the other did not."
+    },
+    {
+      "id": "timeline-dataset",
+      "text": "552,821 → 428,331",
+      "class": "recompute",
+      "check": "datasetRows",
+      "source": "data/emotion-timeline.json dataset.source_composition — sum of rows"
+    },
+    {
+      "id": "timeline-reproducible",
+      "text": "419,180",
+      "class": "crosscheck",
+      "check": "datasetRows",
+      "source": "data/emotion-timeline.json — published_rows minus synthetic_disgust_rows must equal reproducible_rows"
+    },
+    {
+      "id": "timeline-synthetic",
+      "text": "9,151",
+      "class": "crosscheck",
+      "check": "datasetRows",
+      "source": "Same arithmetic relation as above"
+    },
+    {
+      "id": "timeline-held-out-acc",
+      "text": "0.4816",
+      "class": "crosscheck",
+      "check": "primaryAccuracy",
+      "source": "data/emotion-timeline.json primary.held_out_accuracy, from the source timeline file's own header",
+      "note": "Deliberately on the page. The section's result is the disagreement analysis, and hiding a weak accuracy would make the rest untrustworthy."
+    },
+    {
+      "id": "timeline-wer",
+      "text": "0.81%",
+      "class": "attested",
+      "source": "Emotion-Timeline benchmarks/stt/ — per-segment S/I/D counts, not vendored here",
+      "note": "The coursework published 0.61% for this; re-derivation over a shared time window gave 0.81%. The lower figure must never come back."
+    },
+
+    {
+      "id": "platform-best-f1",
+      "text": "0.6693",
+      "class": "recompute",
+      "check": "bestValF1",
+      "source": "data/cv-platform.json epochs[] — max val_f1"
+    },
+    {
+      "id": "platform-best-epoch",
+      "text": "epoch 39",
+      "class": "recompute",
+      "check": "bestValF1",
+      "source": "data/cv-platform.json epochs[] — argmax val_f1, cross-checked against best_epoch"
+    },
+    {
+      "id": "platform-tests",
+      "text": "430 · 92.6%",
+      "class": "attested",
+      "source": "CV-Pipeline-Deployment-Platform docs/evidence/cd-run-27143277518.log"
+    },
+    {
+      "id": "platform-gate",
+      "text": "85%",
+      "class": "attested",
+      "source": "CV-Pipeline-Deployment-Platform CI configuration"
+    },
+    {
+      "id": "platform-evidence-date",
+      "text": "2026-06-08",
+      "class": "attested",
+      "source": "docs/evidence/deployment-health-2026-06-08.txt",
+      "note": "The date is on the page because the cloud endpoints are three months old and are NOT claimed to be up now."
+    },
+
+    {
+      "id": "npec-settings",
+      "text": "28",
+      "class": "recompute",
+      "check": "gainSweep",
+      "source": "data/npec.json runs[] — length"
+    },
+    {
+      "id": "npec-unique",
+      "text": "27 distinct settings",
+      "class": "recompute",
+      "check": "gainSweep",
+      "source": "data/npec.json runs[] — distinct kp/ki/kd triples"
+    },
+    {
+      "id": "npec-duplicate-spread",
+      "text": "165.8 and 137.0 steps",
+      "class": "recompute",
+      "check": "gainSweep",
+      "source": "data/npec.json runs[] — the two runs sharing kp=15, ki=0, kd=3"
+    },
+    {
+      "id": "npec-best-settling",
+      "text": "136 steps",
+      "class": "recompute",
+      "check": "gainSweep",
+      "source": "data/npec.json runs[] — minimum settling time"
+    },
+    {
+      "id": "npec-ppo-successes",
+      "text": "2 / 10",
+      "class": "recompute",
+      "check": "ppoResults",
+      "source": "data/npec.json rl.detail[] — count of success == 1"
+    },
+    {
+      "id": "npec-ppo-distance",
+      "text": "14.873 ± 6.351 mm",
+      "class": "crosscheck",
+      "check": "ppoResults",
+      "source": "data/npec.json rl — mean must agree with the mean of rl.detail[] distances"
+    },
+    {
+      "id": "npec-kaggle",
+      "text": "#2 of 77",
+      "class": "attested",
+      "source": "Kaggle competition leaderboard, via the NPEC README"
+    },
+
+    {
+      "id": "cv-gpa",
+      "text": "9.1/10",
+      "class": "attested",
+      "source": "CV/cv/resume.tex"
+    }
+  ],
+
+  "denied": [
+    {
+      "pattern": "\\b0\\.88\\b",
+      "why": "An NPEC root-instance-segmentation F1 that no repository records anywhere. It is currently live on the GitHub profile README and must not travel here. Emotion-Timeline's add-stage skill names it as a figure that did not survive re-derivation."
+    },
+    {
+      "pattern": "~\\s*9[25]\\s*%",
+      "why": "DSL-Learning's claimed ~95% static / ~92% dynamic validation accuracy. Nothing committed in that repository backs either number; the models directory is .gitkeep only."
+    },
+    {
+      "pattern": "0\\.61\\s*%",
+      "why": "The superseded AssemblyAI word error rate. Re-derivation over a shared time window gave 0.81%; the old figure counted rows instead of seconds."
+    },
+    {
+      "pattern": "suicidesquad",
+      "why": "The CV-Pipeline group's Azure resource naming. Public in that repo, but it reads badly on a job application and adds nothing."
+    },
+    {
+      "pattern": "azurecontainerapps\\.io",
+      "why": "Live deployment FQDNs from the health-check evidence file. Naming a host implies it is up; that evidence is from 2026-06-08."
+    },
+    {
+      "pattern": "Scenic Eclipse",
+      "why": "The specific vessel named in MARBET's technical documentation. The client relationship is fine to state; the itinerary detail is theirs and should not be amplified."
+    }
+  ]
+}

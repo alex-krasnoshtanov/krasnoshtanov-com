@@ -1,0 +1,7 @@
+# Normalise to LF in the repository. This codebase has a documented history of
+# encoding damage on Windows (see Family-Website/docs/decisions.md: PowerShell
+# 5.1 Get-Content without -Encoding reads UTF-8 as ANSI and silently corrupts
+# em dashes and curly quotes). The prose here is full of both.
+* text=auto eol=lf
+*.png binary
+*.woff2 binary

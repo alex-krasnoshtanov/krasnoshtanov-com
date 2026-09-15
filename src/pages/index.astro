@@ -1,0 +1,237 @@
+---
+import { Font } from "astro:assets";
+import { projects, briefs } from "../projects";
+import "../styles/tokens.css";
+import "../styles/site.css";
+
+import manifest from "../../data/manifest.json";
+import shadowData from "../../data/shadow.json";
+import timelineData from "../../data/emotion-timeline.json";
+import platformData from "../../data/cv-platform.json";
+import npecData from "../../data/npec.json";
+
+import * as shadow from "../visuals/shadow";
+import * as timeline from "../visuals/timeline";
+import * as platform from "../visuals/platform";
+import * as npec from "../visuals/npec";
+
+// Every figure is rendered HERE, at build time, into the page. That is what
+// makes the page work with JavaScript off and what removes the whole class of
+// "the canvas failed to init and the visitor sees an empty box" bugs: there is
+// no empty box to show, because the final state is already in the HTML.
+const figures: Record<string, { svg: string; extra?: string; legend?: string }> = {
+  shadow: { svg: shadow.render(shadowData as any) },
+  timeline: {
+    svg: timeline.render(timelineData as any),
+    legend: timeline.legend(timelineData as any),
+  },
+  platform: { svg: platform.render(platformData as any), extra: platform.topology() },
+  npec: { svg: npec.render(npecData as any), extra: npec.rlStrip(npecData as any) },
+};
+
+const title = "Oleksii Krasnoshtanov";
+const description =
+  "Applied Data Science & AI. Computer vision, NLP, RAG systems and MLOps — four projects that shipped to someone other than a grader.";
+const site = "https://krasnoshtanov.com";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} — computer vision, NLP, MLOps</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={site + "/"} />
+
+    <meta property="og:type" content="profile" />
+    <meta property="og:url" content={site + "/"} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="profile:first_name" content="Oleksii" />
+    <meta property="profile:last_name" content="Krasnoshtanov" />
+    {/*
+      No og:image yet, deliberately. A link card with a 404'd image reads
+      worse than one with no image at all, and there is no way to rasterise
+      1200x630 text here without pulling in a headless browser for one file.
+      When it is made: put it at public/og.png, add og:image, og:image:width,
+      og:image:height and twitter:card, and scripts/check.mjs will then
+      enforce that the file exists at the declared dimensions.
+    */}
+    <meta name="twitter:card" content="summary" />
+    <meta name="theme-color" content="#f2f5f7" />
+
+    <Font cssVariable="--font-display" preload />
+    <Font cssVariable="--font-mono" />
+  </head>
+
+  <body>
+    <a class="sr-only" href="#projects">Skip to the projects</a>
+
+    <header class="shell bar">
+      <span class="tag">krasnoshtanov.com</span>
+      <span class="tag">evidence regenerated {manifest.generated}</span>
+    </header>
+
+    <main>
+      <section class="shell hero">
+        <h1 class="hero__name">Oleksii Krasnoshtanov</h1>
+        <p class="hero__claim">
+          I build computer&#8209;vision and NLP systems, then <em>keep them running</em>.
+        </p>
+        <p class="hero__lede">
+          Third&#8209;year Applied Data Science &amp; AI at Breda University of Applied Sciences.
+          Four of the projects below shipped to someone other than a grader — among them a
+          retrieval assistant a client put into production and a transcription service I host
+          myself.
+        </p>
+        <nav class="hero__links" aria-label="Elsewhere">
+          <a href="/cv.pdf">Résumé (PDF)</a>
+          <a href="https://github.com/alex-krasnoshtanov">GitHub</a>
+          <a href="https://linkedin.com/in/oleksii-krasnoshtanov/">LinkedIn</a>
+          <a href="mailto:oleksiikrasnoshtanov@gmail.com">oleksiikrasnoshtanov@gmail.com</a>
+        </nav>
+        <p class="tag">Tilburg, Netherlands · 9.1/10 · BUas Scholarship · EN / UK / RU</p>
+      </section>
+
+      <div class="shell"><div class="ticks"></div></div>
+
+      <div id="projects">
+        {
+          projects.map((p) => {
+            const fig = p.visual ? figures[p.visual] : undefined;
+            return (
+              <section class="shell project">
+                <div class="project__head">
+                  <span class="tag">{p.name}</span>
+                  <span class="tag">{p.meta}</span>
+                </div>
+                <div class="ticks"></div>
+
+                <h2 class="project__finding">{p.finding}</h2>
+
+                <div class={"project__grid" + (p.id === "timeline" ? " project__grid--wide" : "")}>
+                  {p.id === "timeline" ? (
+                    <>
+                      <div>
+                        {fig && (
+                          <figure data-fig={p.id}>
+                            <Fragment set:html={fig.svg} />
+                            {fig.legend && (
+                              <div class="chips">
+                                <Fragment set:html={fig.legend} />
+                              </div>
+                            )}
+                            <figcaption>
+                              top: AssemblyAI transcript · bottom: Whisper large&#8209;v3 · same
+                              classifier on both ·{" "}
+                              <a href={p.source!.href}>{p.source!.label}</a>
+                            </figcaption>
+                          </figure>
+                        )}
+                        {p.body.map((t) => (
+                          <p class="project__body">{t}</p>
+                        ))}
+                      </div>
+                      <div>
+                        <dl class="stats">
+                          {p.stats.map((s) => (
+                            <div>
+                              <dt>{s.label}</dt>
+                              <dd data-signal={s.tone === "signal" || undefined} data-warn={s.tone === "warn" || undefined}>
+                                {s.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                        {p.note && <p class="tag note">{p.note}</p>}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        {p.body.map((t) => (
+                          <p class="project__body">{t}</p>
+                        ))}
+                        {p.note && <p class="tag note">{p.note}</p>}
+                        <p class="tag"><a href={p.repo}>Repository</a></p>
+                      </div>
+                      <div>
+                        {fig && (
+                          <figure data-fig={p.id}>
+                            <Fragment set:html={fig.svg} />
+                            {fig.extra && <Fragment set:html={fig.extra} />}
+                            <figcaption>
+                              <a href={p.source!.href}>{p.source!.label}</a>
+                            </figcaption>
+                          </figure>
+                        )}
+                        <dl class="stats">
+                          {p.stats.map((s) => (
+                            <div>
+                              <dt>{s.label}</dt>
+                              <dd data-signal={s.tone === "signal" || undefined} data-warn={s.tone === "warn" || undefined}>
+                                {s.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </section>
+            );
+          })
+        }
+      </div>
+
+      <section class="shell">
+        <div class="project__head"><span class="tag">Also</span></div>
+        <div class="ticks"></div>
+        {
+          briefs.map((b) => (
+            <article class="brief">
+              <h2>{b.name}</h2>
+              <p class="tag">{b.meta}</p>
+              <p>{b.body}</p>
+              {b.repo && (
+                <p class="tag">
+                  <a href={b.repo}>Repository</a>
+                </p>
+              )}
+            </article>
+          ))
+        }
+      </section>
+    </main>
+
+    <footer class="shell">
+      <p class="tag" style="max-width: 62ch; line-height: 1.7">
+        Every figure on this page is either recomputed from committed data at build time, or
+        recorded in a named file and linked to it. Where a number I once wrote down turned out
+        to have no source, it is gone rather than hedged. The build refuses to publish if any
+        of that stops being true.
+      </p>
+    </footer>
+
+    <script>
+      // The only island on the page, and it adds motion to a figure that is
+      // already fully drawn. If this never runs the page is unchanged.
+      const fig = document.querySelector('[data-fig="shadow"] svg');
+      if (fig) {
+        new IntersectionObserver((entries, obs) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            obs.disconnect();
+            import("../visuals/shadow")
+              .then((m) => m.attach(fig as unknown as SVGElement))
+              .catch(() => {
+                /* The static drawing stands. Nothing to recover. */
+              });
+          }
+        }, { rootMargin: "120px" }).observe(fig);
+      }
+    </script>
+  </body>
+</html>

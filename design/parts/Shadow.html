@@ -1,0 +1,123 @@
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+/*@TOKENS*/
+  .ticks { height: 9px; border-top: 1px solid var(--rule-firm);
+           background-image: repeating-linear-gradient(to right,
+             var(--rule-firm) 0 1px, transparent 1px 40px);
+           background-size: 100% 5px; background-repeat: no-repeat; }
+  .finding { font-size: var(--step-2); font-weight: 600; line-height: 1.12;
+             letter-spacing: -0.015em; margin: 0; max-width: 34ch; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline;
+          gap: var(--gap-s); padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  .stat span:first-child { font-size: var(--step--1); color: var(--ink-soft); }
+  .stat span:last-child { font-family: var(--font-mono); font-weight: 500;
+                          font-variant-numeric: tabular-nums; }
+  .key { display: flex; gap: var(--gap-m); align-items: center; }
+  .key i { display: inline-block; width: 26px; height: 0; vertical-align: middle;
+           margin-right: 7px; }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; display: flex; flex-direction: column; gap: var(--gap-m); max-width: var(--shell); width: 100%; margin: 0 auto; padding: 64px 40px; background: var(--paper)">
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 14px">
+      <span class="tag">Detection by Shadow</span>
+      <span class="tag">BrabantHack 2026 &#183; DEMCON deep tech track &#183; won &#183; team of three</span>
+    </div>
+    <div class="ticks"></div>
+  </div>
+
+  <h2 class="finding">The person is outside the frame. Their shadow isn&#39;t.</h2>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: var(--gap-l); align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: var(--gap-m)">
+      <p style="margin: 0; font-size: var(--step-0); line-height: 1.55; color: var(--ink-soft)">Given a frame where the pedestrian is entirely out of shot, predict the box they occupy anyway. Re&#8209;describing that box against the edge it hides behind &#8212; which side, how far out, how wide, how tall &#8212; took mean IoU from 0.4675 to 0.6096, because a distance and a width cannot describe an impossible box the way two loose corners can.</p>
+      <p class="tag" style="margin: 0; line-height: 1.6">Nobody is ever clipped by the frame edge, so which side they are on has no ambiguous middle case. One mean box for all 1,692 training frames scores <span class="num" style="color: var(--ink)">0.0000</span> &#8212; the boxes sit on both sides. Splitting by side is what creates a floor at all, and it is the same idea the model needed.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: var(--gap-m)">
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap-xs)">
+        <svg viewBox="-350 -50 1440 580" style="width: 100%; height: auto; display: block" role="img" aria-label="A dashed 720 by 480 camera frame. Twelve predicted bounding boxes sit entirely outside it, six beyond the left edge and six beyond the right, none of them touching the frame.">
+          <defs>
+            <pattern id="outside" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="var(--rule-firm)" stroke-width="1.1"/>
+            </pattern>
+          </defs>
+
+          <rect x="-350" y="-50" width="350" height="580" fill="url(#outside)" opacity="0.55"/>
+          <rect x="{{frameW}}" y="-50" width="370" height="580" fill="url(#outside)" opacity="0.55"/>
+          <text x="-336" y="-18" font-size="28" fill="var(--ink-soft)" font-family="IBM Plex Mono, monospace">outside the sensor</text>
+
+          <rect x="0" y="0" width="{{frameW}}" height="{{frameH}}" fill="none"
+                stroke="var(--ink)" stroke-width="3" stroke-dasharray="17 13"/>
+          <text x="14" y="-18" font-size="28" fill="var(--ink-soft)" font-family="IBM Plex Mono, monospace">{{frameLabel}} &#8212; what the camera sees</text>
+
+          <polygon points="0,300 250,{{frameH}} 0,{{frameH}}" fill="var(--signal)" opacity="0.12"/>
+          <text x="20" y="{{shadowLabelY}}" font-size="26" fill="var(--signal)" font-family="IBM Plex Mono, monospace">shadow (indicative &#8212; frames not shown)</text>
+
+          <sc-for list="{{boxes}}" as="b" hint-placeholder-count="12">
+            <rect x="{{b.v2x}}" y="{{b.v2y}}" width="{{b.v2w}}" height="{{b.v2h}}"
+                  fill="none" stroke="var(--rule-firm)" stroke-width="2.5" stroke-dasharray="9 7"/>
+          </sc-for>
+          <sc-for list="{{boxes}}" as="b" hint-placeholder-count="12">
+            <rect x="{{b.v5x}}" y="{{b.v5y}}" width="{{b.v5w}}" height="{{b.v5h}}"
+                  fill="none" stroke="var(--signal)" stroke-width="3.5">
+              <title>{{b.title}}</title>
+            </rect>
+          </sc-for>
+        </svg>
+
+        <div class="key tag">
+          <span><i style="border-top: 2px dashed var(--rule-firm)"></i>v2, GIoU loss</span>
+          <span><i style="border-top: 3px solid var(--signal)"></i>v5, decomposed + 3&#8209;seed ensemble</span>
+        </div>
+        <p class="tag" style="margin: 0; line-height: 1.6">Twelve of the {{total}} test predictions, six per side, both generations on the same frames. Coordinates from <a href="https://github.com/alex-krasnoshtanov/Detection-by-Shadow/blob/main/results/submission_v5_ensemble.csv">results/submission_v5_ensemble.csv</a>. The IoU ladder is recorded in <a href="https://github.com/alex-krasnoshtanov/Detection-by-Shadow/blob/main/docs/experiments.md">docs/experiments.md</a>, not recomputed here.</p>
+      </div>
+
+      <div>
+        <div class="stat"><span>predict&#8209;the&#8209;mean floor, per side</span><span>0.4295</span></div>
+        <div class="stat"><span>organisers&#39; hidden test set</span><span style="color: var(--signal)">0.626</span></div>
+        <div class="stat"><span>predicted left of frame / right of frame</span><span>{{left}} / {{right}}</span></div>
+        <div class="stat"><span>walking direction: declines to answer</span><span style="color: var(--warn)">{{abstains}} / {{total}}</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+/*@DATA*/
+    // Holes are dotted lookups only, so every bit of arithmetic lives here.
+    var geom = function (q) {
+      return { x: q[0], y: q[1], w: q[2] - q[0], h: q[3] - q[1] };
+    };
+    var boxes = BOXES.map(function (b) {
+      var p = geom(b.v2), t = geom(b.v5);
+      return {
+        v2x: p.x, v2y: p.y, v2w: p.w, v2h: p.h,
+        v5x: t.x, v5y: t.y, v5w: t.w, v5h: t.h,
+        title: b.id + " — " + b.side + " of frame, xmin " + b.v5[0]
+      };
+    });
+    return {
+      boxes: boxes,
+      frameW: FRAME[0],
+      frameH: FRAME[1],
+      frameLabel: FRAME[0] + " × " + FRAME[1],
+      shadowLabelY: FRAME[1] - 16,
+      left: LEFT,
+      right: RIGHT,
+      abstains: ABSTAINS,
+      total: TOTAL
+    };
+  }
+}
+</script>

@@ -1,0 +1,60 @@
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+/*@TOKENS*/
+  /* The boldness budget is spent here and nowhere else on the page. */
+  .claim { font-size: var(--step-4); font-weight: 600; line-height: 1.02;
+           letter-spacing: -0.022em; margin: 0; max-width: 24ch; }
+  .claim em { font-style: normal; color: var(--signal); }
+  /* Ticked rule: a measuring edge rather than a divider. */
+  .ticks { height: 9px; border-top: 1px solid var(--rule-firm);
+           background-image: repeating-linear-gradient(to right,
+             var(--rule-firm) 0 1px, transparent 1px 40px);
+           background-size: 100% 5px; background-repeat: no-repeat; }
+  .links { display: flex; gap: var(--gap-m); align-items: baseline;
+           font-size: var(--step-0); }
+  .links a { text-decoration: none; border-bottom: 1px solid var(--rule-firm);
+             padding-bottom: 2px; color: var(--ink); }
+  .links a:hover { border-color: var(--signal); color: var(--signal); }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; display: flex; flex-direction: column; background: var(--paper)">
+
+  <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 40px; border-bottom: 1px solid var(--rule)">
+    <span class="tag">krasnoshtanov.com</span>
+    <span class="tag">built 2026&#8209;09&#8209;15 &#183; source on github</span>
+  </div>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: var(--gap-m); max-width: var(--shell); width: 100%; margin: 0 auto; padding: 72px 40px 0">
+
+    <h1 class="mono" style="font-size: var(--step-1); font-weight: 500; letter-spacing: 0.04em; margin: 0; color: var(--ink)">Oleksii Krasnoshtanov</h1>
+
+    <p class="claim">I build computer&#8209;vision and NLP systems, then <em>keep them running</em>.</p>
+
+    <p style="margin: 0; max-width: var(--measure); font-size: var(--step-0); line-height: 1.55; color: var(--ink-soft)">Third&#8209;year Applied Data Science &amp; AI at Breda University of Applied Sciences. Four of the projects below shipped to someone other than a grader &#8212; among them a retrieval assistant a client put into production and a transcription service I host myself.</p>
+
+    <div class="links" style="margin-top: var(--gap-s)">
+      <a href="https://krasnoshtanov.com/cv.pdf">R&#233;sum&#233; (PDF)</a>
+      <a href="https://github.com/alex-krasnoshtanov">GitHub</a>
+      <a href="https://linkedin.com/in/oleksii-krasnoshtanov/">LinkedIn</a>
+      <a href="mailto:oleksiikrasnoshtanov@gmail.com">oleksiikrasnoshtanov@gmail.com</a>
+    </div>
+
+    <p class="tag" style="margin: 0">Tilburg, Netherlands &#183; 9.1/10 &#183; BUas Scholarship &#183; EN / UK / RU</p>
+  </div>
+
+  <div style="max-width: var(--shell); width: 100%; margin: 0 auto; padding: 0 40px 0">
+    <div class="ticks"></div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 18px 0 40px">
+      <span style="display: flex; align-items: baseline; gap: 12px">
+        <svg width="14" height="18" viewBox="0 0 14 18" fill="none" stroke="var(--ink-soft)" stroke-width="1.5" aria-hidden="true"><path d="M7 1v15M2 11l5 5 5-5"/></svg>
+        <span style="font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em">Detection by Shadow</span>
+      </span>
+      <span class="tag">won &#183; DEMCON deep tech track &#183; mean IoU <span class="num" style="color: var(--ink)">0.626</span></span>
+    </div>
+  </div>
+
+</div>
+</x-dc>

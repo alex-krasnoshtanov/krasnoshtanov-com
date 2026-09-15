@@ -1,0 +1,76 @@
+/*
+  Design tokens.
+
+  The type scale, the spacing steps and --measure are lifted from
+  Family-Website/packages/theme/tokens.css, where each value was measured
+  rather than picked. The palette is NOT: the PEC green is the family
+  business's identity and has no business on a personal site.
+
+  ---------------------------------------------------------------------------
+  TWO ACCENTS, AND WHY THEY MEAN SOMETHING
+
+  Every project on this page is a measurement, so the two accents are reserved
+  for the two things a measurement can be:
+
+    --signal   the system's answer. Predictions, chosen models, results.
+    --warn     where the system disagrees with itself, declines to answer, or
+               scores badly. Never decoration, never an error state.
+
+  They share one lightness and one chroma and differ only in hue, so neither
+  shouts louder than the other and a reader can tell them apart without a
+  legend telling them which is "good".
+
+  Both are measured against --paper, not against white, by converting oklch to
+  linear sRGB and computing the WCAG ratio. Do not eyeball these and do not
+  raise the lightness without re-measuring:
+
+    ink       15.19:1     ink-soft   6.21:1
+    signal     5.00:1     warn       5.36:1
+
+  L is 0.52, not the 0.55 this started at: 0.55 measured 4.40:1 for the blue
+  and FAILED, while the red passed at 4.71:1 — so the two were never actually
+  interchangeable at that lightness, which is the whole premise of the pair.
+  0.52 clears 4.5:1 for both and keeps the shared-L-and-C promise true.
+
+  --rule and --rule-firm are non-text and are not held to 4.5:1.
+*/
+
+:root {
+  color-scheme: light;
+
+  --paper:     oklch(0.968 0.004 250);
+  --paper-2:   oklch(0.945 0.005 250);
+  --ink:       oklch(0.235 0.018 250);
+  --ink-soft:  oklch(0.470 0.014 250);
+  --rule:      oklch(0.870 0.006 250);
+  --rule-firm: oklch(0.760 0.010 250);
+
+  --signal:      oklch(0.52 0.13 248);
+  --warn:        oklch(0.52 0.13 28);
+  --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+  /* Fluid scale, so it works down to a phone without a media query for type.
+     --step--2 is deliberately NOT fluid: it is the floor for the tracked mono
+     micro-labels, and below 12px uppercase mono with letter-spacing keeps its
+     stroke weight but loses its word shape. */
+  --step--2: 0.75rem;
+  --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+  --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+  --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+  --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+  --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+  --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+  --gap-xs: 0.5rem;
+  --gap-s:  1rem;
+  --gap-m:  2rem;
+  --gap-l:  4rem;
+  --gap-xl: 7rem;
+
+  /* 54ch, not 62ch: `ch` is the advance of "0", which is narrower than the
+     average lowercase glyph, so a ch count buys about 20% more characters
+     than it claims. 54ch measures ~64 characters per line here. */
+  --measure: 54ch;
+  --shell:   1180px;
+  --pad-x:   clamp(1rem, 4vw, 2.5rem);
+}

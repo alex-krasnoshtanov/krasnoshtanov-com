@@ -1,0 +1,35 @@
+{
+  // Workers with Static Assets, not Pages: Cloudflare recommends Workers for
+  // all new sites, and it is what their own agent-setup docs point at.
+  //
+  // There is deliberately no `main`. With assets and no Worker script this is
+  // a pure static deployment, and nothing on this page needs server logic.
+  //
+  // IMPORTANT: leave the dashboard's git integration OFF for this Worker.
+  // With it on, Cloudflare builds straight from the push and every gate in
+  // scripts/check.mjs is skipped. The Actions workflow is the only thing that
+  // should run `wrangler deploy`.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "krasnoshtanov-com",
+  "compatibility_date": "2026-09-15",
+
+  // No *.workers.dev hostname. A second address serving the same page is a
+  // duplicate a search engine can index instead of the real one, and
+  // `_headers` is path-based so it cannot noindex one host and not the other.
+  // The apex is the only way in.
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "krasnoshtanov.com", "custom_domain": true }
+  ],
+
+  "assets": {
+    "directory": "./dist",
+    // Astro emits directory-style URLs (/foo/index.html); this is the mode
+    // that serves them without a redirect loop.
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  },
+
+  "observability": { "enabled": true }
+}

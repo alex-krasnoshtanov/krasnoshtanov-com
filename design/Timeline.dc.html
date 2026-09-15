@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Timeline — krasnoshtanov.com</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+  /* Structural values lifted from Family-Website/packages/theme/tokens.css
+     (type scale, spacing, --measure). Palette is new: the PEC green is the
+     family business's identity and does not belong on a personal site. */
+  :root {
+    --paper:     oklch(0.968 0.004 250);
+    --paper-2:   oklch(0.945 0.005 250);
+    --ink:       oklch(0.235 0.018 250);
+    --ink-soft:  oklch(0.470 0.014 250);
+    --rule:      oklch(0.870 0.006 250);
+    --rule-firm: oklch(0.760 0.010 250);
+    /* two accents, same L and C, hue apart: signal = the system's answer,
+       warn = where it disagrees with itself or declines to answer */
+    --signal:    oklch(0.52 0.13 248);
+    --warn:      oklch(0.52 0.13 28);
+    --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+    --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+    --step--2: 0.75rem;                                    /* not fluid: 12px floor for tracked mono */
+    --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+    --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+    --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+    --gap-xs: 0.5rem; --gap-s: 1rem; --gap-m: 2rem; --gap-l: 4rem;
+    --measure: 54ch; --shell: 1180px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: var(--font-display); font-size: var(--step-0);
+         -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tag { font-family: var(--font-mono); font-size: var(--step--2);
+         letter-spacing: 0.08em; color: var(--ink-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+         font-weight: 500; }
+
+  .ticks { height: 9px; border-top: 1px solid var(--rule-firm);
+           background-image: repeating-linear-gradient(to right,
+             var(--rule-firm) 0 1px, transparent 1px 40px);
+           background-size: 100% 5px; background-repeat: no-repeat; }
+  .finding { font-size: var(--step-2); font-weight: 600; line-height: 1.12;
+             letter-spacing: -0.015em; margin: 0; max-width: 40ch; }
+  .stage { display: flex; flex-direction: column; gap: 3px; padding: 10px 18px 10px 0; }
+  .stage b { font-size: var(--step--1); font-weight: 600; }
+  .stage span { font-family: var(--font-mono); font-size: var(--step--2);
+                color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .stage--first b { color: var(--warn); }
+  .stat { display: flex; justify-content: space-between; align-items: baseline;
+          gap: var(--gap-s); padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  .stat span:first-child { font-size: var(--step--1); color: var(--ink-soft); }
+  .stat span:last-child { font-family: var(--font-mono); font-weight: 500;
+                          font-variant-numeric: tabular-nums; }
+  blockquote.caveat { margin: 0; padding: var(--gap-s) 0 var(--gap-s) var(--gap-s);
+            border-left: 3px solid var(--warn); font-size: var(--step-0);
+            line-height: 1.5; max-width: 58ch; }
+  blockquote.caveat cite { display: block; margin-top: 6px; font-style: normal;
+            font-family: var(--font-mono); font-size: var(--step--2);
+            letter-spacing: 0.08em; color: var(--ink-soft); }
+  .swatch { display: inline-flex; align-items: center; gap: 6px;
+            font-family: var(--font-mono); font-size: var(--step--2);
+            color: var(--ink-soft); }
+  /* The border is not decoration: Neutral is the palest fill and the most
+     common answer in this recording, and without an edge its 12px swatch is
+     invisible against the paper. */
+  .swatch span.chip { width: 12px; height: 12px; display: inline-block;
+            border: 1px solid var(--rule-firm); }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; display: flex; flex-direction: column; gap: var(--gap-m); max-width: var(--shell); width: 100%; margin: 0 auto; padding: 64px 40px; background: var(--paper)">
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 14px">
+      <span class="tag">Emotion Timeline</span>
+      <span class="tag">Content Intelligence Agency &#183; Sep&#8211;Nov 2025 &#183; rebuilt solo</span>
+    </div>
+    <div class="ticks"></div>
+  </div>
+
+  <h2 class="finding">Swap the transcriber and 38% of the timeline moves.</h2>
+
+  <div style="display: flex; flex-wrap: wrap; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule)">
+    <div class="stage stage--first"><b>transcribe</b><span>the one thing changed</span></div>
+    <div class="stage"><b>chunk</b><span>{{chunks}} &#215; {{chunkChars}} chars</span></div>
+    <div class="stage"><b>scene split</b><span>{{scenes}} scenes, {{gap}} s gap</span></div>
+    <div class="stage"><b>classify</b><span>7 emotions</span></div>
+    <div class="stage"><b>calibrate</b><span>T = {{temperature}}</span></div>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <svg viewBox="0 0 3100 450" style="width: 100%; height: auto; display: block" role="img" aria-label="Two emotion tracks over the same 51-minute recording, one per speech-to-text engine. A hatched strip between them marks every stretch where the two disagree, which is most of the recording.">
+      <defs>
+        <pattern id="dis" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+          <line x1="0" y1="0" x2="0" y2="9" stroke="var(--warn)" stroke-width="3.4"/>
+        </pattern>
+      </defs>
+
+      <sc-for list="{{trackA}}" as="s" hint-placeholder-count="47">
+        <rect x="{{s.x}}" y="0" width="{{s.w}}" height="120" fill="{{s.fill}}"/>
+      </sc-for>
+      <sc-for list="{{runs}}" as="d" hint-placeholder-count="40">
+        <rect x="{{d.x}}" y="140" width="{{d.w}}" height="70" fill="url(#dis)"/>
+      </sc-for>
+      <sc-for list="{{trackB}}" as="s" hint-placeholder-count="54">
+        <rect x="{{s.x}}" y="230" width="{{s.w}}" height="120" fill="{{s.fill}}"/>
+      </sc-for>
+
+      <sc-for list="{{axis}}" as="t" hint-placeholder-count="11">
+        <line x1="{{t.x}}" y1="362" x2="{{t.x}}" y2="382" stroke="var(--rule-firm)" stroke-width="3"/>
+      </sc-for>
+      <sc-for list="{{axis}}" as="t" hint-placeholder-count="11">
+        <text x="{{t.x}}" y="422" font-size="36" fill="var(--ink-soft)"
+              text-anchor="{{t.anchor}}" font-family="IBM Plex Mono, monospace">{{t.label}}</text>
+      </sc-for>
+    </svg>
+
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: var(--gap-m); flex-wrap: wrap">
+      <div style="display: flex; gap: var(--gap-s); flex-wrap: wrap">
+        <sc-for list="{{legend}}" as="e" hint-placeholder-count="7">
+          <span class="swatch"><span class="chip" style="background: {{e.fill}}"></span>{{e.name}}</span>
+        </sc-for>
+        <span class="swatch"><span class="chip" style="background: var(--warn)"></span>the two disagree</span>
+      </div>
+      <span class="tag">top: AssemblyAI transcript &#183; bottom: Whisper large&#8209;v3 &#183; same classifier on both</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: var(--gap-l); align-items: start">
+    <div style="display: flex; flex-direction: column; gap: var(--gap-s)">
+      <p style="margin: 0; font-size: var(--step-0); line-height: 1.55; color: var(--ink-soft)">Speech to text, then chunk, then split into scenes, then classify. Only the first stage differs between these two tracks &#8212; same chunker, same classifier, same calibration. A component nobody thinks of as part of the model moves more than a third of the output.</p>
+      <blockquote class="caveat">&#8220;This recording has no labels, so agreement only shows where the two models are consistent. They can agree and both still be wrong.&#8221;<cite>the timeline file&#39;s own note, carried through to here</cite></blockquote>
+    </div>
+    <div>
+      <div class="stat"><span>agreement over shared seconds</span><span>61.9% of 2,737</span></div>
+      <div class="stat"><span>scenes where the two classifiers agree</span><span>17 / 47</span></div>
+      <div class="stat"><span>primary model, held&#8209;out accuracy</span><span style="color: var(--warn)">0.4816</span></div>
+      <div class="stat"><span>word error rate, chosen engine</span><span>0.81%</span></div>
+      <p class="tag" style="margin: var(--gap-s) 0 0; line-height: 1.6">359 of the 3,096 seconds are segmented by one engine and not the other, and are excluded from the agreement figure.</p>
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+// Derived from ../data/ by build-artboards.mjs. Do not hand-edit.
+    var EMOTIONS = ["Anger","Disgust","Fear","Joy","Neutral","Sadness","Surprise"];
+    var DURATION = 3096.165;
+    var STAGES = {"segments":316,"chunks":142,"chunk_chars":400,"scenes":47,"gap_seconds":1};
+    var TRACK_A = [[1.9,4.8,4],[23.2,48.8,4],[51,94.9,5],[97.4,204.6,4],[219.8,243.8,5],[249.5,325.2,1],[326.3,353.1,2],[364.4,393.9,1],[395,424.7,5],[425.9,447.9,4],[449.9,528.7,4],[530.2,540.8,3],[542.7,610,0],[612.2,637.3,1],[638.4,744.5,4],[749.2,779.4,1],[784.5,866.9,4],[869.7,884.6,2],[888.2,981.5,4],[984.8,1094.5,2],[1101.4,1143.5,2],[1145.2,1233.2,4],[1235.2,1358.8,4],[1361.3,1570.9,4],[1575.8,1603.1,4],[1606.7,1688.8,0],[1694,1933.7,4],[1935.7,2015.9,3],[2021.9,2049.7,4],[2050.8,2074.8,4],[2080.3,2168.7,4],[2172.4,2192.5,4],[2193.5,2252.9,4],[2254.4,2317,0],[2319.3,2403.8,4],[2405.6,2486.6,3],[2490.3,2541.1,4],[2542.6,2544.3,4],[2545.7,2629.4,4],[2630.4,2637,4],[2641,2677.8,4],[2682.1,2764.7,4],[2766.9,2936.7,4],[2941.1,2965.2,0],[2967.1,2990.1,3],[2992.3,3073.2,2],[3076.9,3098.1,6]];
+    var TRACK_B = [[1.4,4.7,1],[49.1,64.3,4],[70.2,94.4,5],[97.4,146.6,1],[159.6,303.5,2],[307,310.5,1],[313.9,400.7,1],[407.4,532,4],[534.3,647.5,0],[649.9,713,4],[716.8,744.1,5],[747.4,779,4],[784.2,866.6,4],[869.7,1090.5,2],[1093,1094,2],[1101.3,1269.8,4],[1273.4,1353.8,2],[1360.2,1368.8,1],[1371.3,1372.9,4],[1375.4,1404.3,2],[1406.3,1569.8,4],[1571.9,1602.9,4],[1606.6,1702.2,0],[1704.5,1713,4],[1722.4,1768.9,3],[1771.2,1775,5],[1778.2,1899.1,4],[1904.5,1931.2,2],[1935.6,1938.8,3],[1942.4,1972.1,3],[1976.3,2010,4],[2012.4,2015.8,3],[2018.6,2070.3,4],[2078.9,2110.7,4],[2117.4,2168.5,3],[2171.7,2240.2,4],[2243.6,2316.8,0],[2319,2356,4],[2358.6,2377.5,4],[2380.5,2486.3,3],[2489,2515.2,4],[2519.4,2575.9,4],[2580.1,2631.7,4],[2640.4,2648.5,4],[2653.5,2677.5,4],[2682,2748.4,1],[2751.3,2856.6,5],[2859.5,2874.5,4],[2877.7,2878.1,3],[2880.3,2917.7,0],[2920.1,2936.5,4],[2939.1,2964.9,3],[2967,3067.1,2],[3076.5,3097.9,6]];
+    // One lightness and one chroma across all seven, hue apart, so no single
+    // emotion shouts. Neutral is deliberately the quietest: it is the most
+    // common answer here by a wide margin, and a loud fill for it would read
+    // as the recording being mostly something.
+    var FILL = [
+      "oklch(0.66 0.075 25)",  "oklch(0.66 0.075 130)", "oklch(0.66 0.075 310)",
+      "oklch(0.66 0.075 70)",  "oklch(0.82 0.006 250)", "oklch(0.66 0.075 255)",
+      "oklch(0.66 0.075 195)"
+    ];
+    var band = function (s) {
+      return { x: s[0], w: Math.max(s[1] - s[0], 2), fill: FILL[s[2]] };
+    };
+
+    // Which emotion each track answers at each whole second. A scene spanning
+    // [start, end) covers every integer t with ceil(start) <= t < end; this
+    // convention is the one scripts/check.mjs pins, because truncating the end value
+    // instead drops the last second of every scene and moves the headline
+    // figure by 0.2 points.
+    var at = function (track) {
+      var m = {};
+      for (var i = 0; i < track.length; i++) {
+        var s = track[i];
+        for (var t = Math.ceil(s[0]); t < s[1]; t++) m[t] = s[2];
+      }
+      return m;
+    };
+    var a = at(TRACK_A), b = at(TRACK_B);
+
+    // Merge the disagreeing seconds into runs, so this is ~40 rects rather
+    // than one per second.
+    var runs = [], open = null;
+    for (var t = 0; t <= Math.ceil(DURATION); t++) {
+      var differs = a[t] !== undefined && b[t] !== undefined && a[t] !== b[t];
+      if (differs && open === null) open = t;
+      if (!differs && open !== null) { runs.push({ x: open, w: Math.max(t - open, 2) }); open = null; }
+    }
+    if (open !== null) runs.push({ x: open, w: Math.max(Math.ceil(DURATION) - open, 2) });
+
+    var axis = [];
+    for (var s = 0; s <= 3000; s += 300) {
+      axis.push({
+        x: s,
+        label: (s / 60) + ":00",
+        // The first and last labels are anchored inward; centred, half of
+        // "0:00" would fall outside the viewBox and be clipped.
+        anchor: s === 0 ? "start" : s === 3000 ? "end" : "middle"
+      });
+    }
+
+    return {
+      trackA: TRACK_A.map(band),
+      trackB: TRACK_B.map(band),
+      runs: runs,
+      axis: axis,
+      legend: EMOTIONS.map(function (name, i) { return { name: name, fill: FILL[i] }; }),
+      chunks: STAGES.chunks,
+      chunkChars: STAGES.chunk_chars,
+      scenes: STAGES.scenes,
+      gap: STAGES.gap_seconds,
+      temperature: 1.235
+    };
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DirectionC — krasnoshtanov.com</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+  /* Structural values lifted from Family-Website/packages/theme/tokens.css
+     (type scale, spacing, --measure). Palette is new: the PEC green is the
+     family business's identity and does not belong on a personal site. */
+  :root {
+    --paper:     oklch(0.968 0.004 250);
+    --paper-2:   oklch(0.945 0.005 250);
+    --ink:       oklch(0.235 0.018 250);
+    --ink-soft:  oklch(0.470 0.014 250);
+    --rule:      oklch(0.870 0.006 250);
+    --rule-firm: oklch(0.760 0.010 250);
+    /* two accents, same L and C, hue apart: signal = the system's answer,
+       warn = where it disagrees with itself or declines to answer */
+    --signal:    oklch(0.52 0.13 248);
+    --warn:      oklch(0.52 0.13 28);
+    --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+    --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+    --step--2: 0.75rem;                                    /* not fluid: 12px floor for tracked mono */
+    --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+    --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+    --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+    --gap-xs: 0.5rem; --gap-s: 1rem; --gap-m: 2rem; --gap-l: 4rem;
+    --measure: 54ch; --shell: 1180px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: var(--font-display); font-size: var(--step-0);
+         -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tag { font-family: var(--font-mono); font-size: var(--step--2);
+         letter-spacing: 0.08em; color: var(--ink-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+         font-weight: 500; }
+
+  /* Alternate: the page as a drawing sheet. Each project is a numbered plate
+     with a title block; the sheet border is the structure. Low-fi sketch. */
+  .cell { border: 1px solid var(--rule-firm); padding: 8px 10px;
+          display: flex; flex-direction: column; gap: 2px; }
+  .cell span { font-family: var(--font-mono); font-size: 10px;
+               letter-spacing: 0.08em; color: var(--ink-soft); }
+  .cell b { font-size: 13px; font-weight: 600; }
+  </style>
+</helmet>
+<div style="width: 880px; min-height: 560px; padding: 22px; background: var(--paper)">
+  <div style="border: 2px solid var(--ink); min-height: 516px; padding: 22px; display: flex; flex-direction: column; gap: 16px; position: relative">
+    <div class="tag" style="letter-spacing: 0.1em">DIRECTION C &#8212; &#8220;DRAWING SHEET&#8221; &#183; low&#8209;fi sketch</div>
+    <div style="font-size: 30px; font-weight: 600; line-height: 1.1; max-width: 26ch; letter-spacing: -0.02em">Systems, measured &#8212; and the measurements shown</div>
+
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 520px">
+      <div class="cell"><span>PLATE A &#183; DETECTION BY SHADOW</span><b>0.626 mean IoU, hidden test</b></div>
+      <div class="cell"><span>PLATE B &#183; EMOTION TIMELINE</span><b>47 scenes, 17 agreed</b></div>
+      <div class="cell"><span>PLATE C &#183; CV PLATFORM</span><b>3 targets, 430 tests</b></div>
+      <div class="cell"><span>PLATE D &#183; ROOT-TIP ROBOTICS</span><b>28 gain settings swept</b></div>
+    </div>
+
+    <div style="position: absolute; right: 22px; bottom: 22px; width: 300px; border: 1px solid var(--ink)">
+      <div style="display: flex; border-bottom: 1px solid var(--ink)">
+        <div style="flex-grow: 1; padding: 6px 9px"><div class="tag">DRAWN BY</div><div style="font-size: 13px; font-weight: 600">O. Krasnoshtanov</div></div>
+        <div style="padding: 6px 9px; border-left: 1px solid var(--ink)"><div class="tag">SHEET</div><div class="num" style="font-size: 13px">1 / 1</div></div>
+      </div>
+      <div style="padding: 6px 9px" class="tag">krasnoshtanov.com &#183; r&#233;sum&#233; &#183; github &#183; linkedin</div>
+    </div>
+
+    <div class="tag" style="max-width: 460px; margin-top: auto; line-height: 1.6">Most distinctive of the three and the best fit for measurement-heavy content. Risk: the title-block conceit can read as costume, and the plate grid fights a one-scroll page.</div>
+  </div>
+</div>
+</x-dc>
+
+</body>
+</html>

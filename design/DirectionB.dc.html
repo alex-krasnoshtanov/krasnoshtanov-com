@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DirectionB — krasnoshtanov.com</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <style>
+  /* Structural values lifted from Family-Website/packages/theme/tokens.css
+     (type scale, spacing, --measure). Palette is new: the PEC green is the
+     family business's identity and does not belong on a personal site. */
+  :root {
+    --paper:     oklch(0.968 0.004 250);
+    --paper-2:   oklch(0.945 0.005 250);
+    --ink:       oklch(0.235 0.018 250);
+    --ink-soft:  oklch(0.470 0.014 250);
+    --rule:      oklch(0.870 0.006 250);
+    --rule-firm: oklch(0.760 0.010 250);
+    /* two accents, same L and C, hue apart: signal = the system's answer,
+       warn = where it disagrees with itself or declines to answer */
+    --signal:    oklch(0.52 0.13 248);
+    --warn:      oklch(0.52 0.13 28);
+    --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+    --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+    --step--2: 0.75rem;                                    /* not fluid: 12px floor for tracked mono */
+    --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+    --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+    --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+    --gap-xs: 0.5rem; --gap-s: 1rem; --gap-m: 2rem; --gap-l: 4rem;
+    --measure: 54ch; --shell: 1180px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: var(--font-display); font-size: var(--step-0);
+         -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tag { font-family: var(--font-mono); font-size: var(--step--2);
+         letter-spacing: 0.08em; color: var(--ink-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+         font-weight: 500; }
+
+  /* Alternate: the page as a build log. Everything mono, dark surface,
+     hierarchy from indentation and weight rather than size. Low-fi sketch. */
+  body { background: oklch(0.21 0.017 250); color: oklch(0.90 0.008 250);
+         font-family: var(--font-mono); }
+  .l { display: flex; gap: 14px; font-size: 13px; line-height: 1.85; }
+  .l b { color: oklch(0.72 0.10 195); font-weight: 500; min-width: 84px; }
+  .dim { color: oklch(0.63 0.012 250); }
+  .hit { color: oklch(0.80 0.13 85); }
+  </style>
+</helmet>
+<div style="width: 880px; min-height: 560px; padding: 30px 34px; background: oklch(0.21 0.017 250); display: flex; flex-direction: column; gap: 18px">
+  <div class="dim" style="font-size: 12px; letter-spacing: 0.1em">DIRECTION B &#8212; &#8220;BUILD LOG&#8221; &#183; low&#8209;fi sketch</div>
+  <div style="font-size: 26px; font-weight: 600; line-height: 1.25; max-width: 30ch">oleksii krasnoshtanov<br><span class="dim">builds cv/nlp systems, then runs them</span></div>
+  <div style="display: flex; flex-direction: column; margin-top: 4px">
+    <div class="l"><b>[ok]</b><span>shadow-detection &#8212; won demcon track, iou <span class="hit">0.626</span> hidden test</span></div>
+    <div class="l"><b>[ok]</b><span>emotion-timeline &#8212; 47 scenes, models agree on <span class="hit">17</span></span></div>
+    <div class="l"><b>[ok]</b><span>cv-platform &#8212; 3 deploy targets, <span class="hit">430</span> tests</span></div>
+    <div class="l"><b>[ok]</b><span>npec-robotics &#8212; kaggle <span class="hit">#2 / 77</span></span></div>
+    <div class="l"><b>[prod]</b><span>marbet-rag &#8212; client deployed, still running</span></div>
+    <div class="l dim"><b>[skip]</b><span>here-hackathon &#8212; under nda</span></div>
+  </div>
+  <div style="margin-top: auto; border-top: 1px solid oklch(0.34 0.014 250); padding-top: 14px; display: flex; gap: 22px; font-size: 13px">
+    <span>&#8250; resume.pdf</span><span>&#8250; github</span><span>&#8250; linkedin</span><span>&#8250; email</span>
+  </div>
+  <div class="dim" style="font-size: 11px; line-height: 1.6">Trades warmth for machine-credibility. Strongest at a glance, weakest for the data visuals &#8212; a dark ground fights seven emotion hues, and long prose in mono is tiring.</div>
+</div>
+</x-dc>
+
+</body>
+</html>

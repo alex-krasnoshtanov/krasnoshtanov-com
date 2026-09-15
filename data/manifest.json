@@ -1,0 +1,103 @@
+{
+  "_comment": [
+    "Written by scripts/prep.mjs. `generated` is printed in the page",
+    "footer so a stale derivation is visible on the page itself, not only",
+    "to CI. `sources[].dirty` true means that file was read out of a tree",
+    "with uncommitted changes, so the commit recorded next to it does not",
+    "reproduce it — scripts/check.mjs fails the build on that."
+  ],
+  "generated": "2026-09-15",
+  "sources": [
+    {
+      "repo": "Emotion-Timeline",
+      "path": "benchmarks/pipeline/timeline.json",
+      "commit": "f43e70372bdb1db6b3ba691605e28ac8747af8af",
+      "dirty": false,
+      "bytes": 15995,
+      "sha256": "ee31cffa49b8843a"
+    },
+    {
+      "repo": "Emotion-Timeline",
+      "path": "benchmarks/pipeline/timeline-whisper.json",
+      "commit": "f43e70372bdb1db6b3ba691605e28ac8747af8af",
+      "dirty": false,
+      "bytes": 14858,
+      "sha256": "e9a75dceaebdaabe"
+    },
+    {
+      "repo": "Emotion-Timeline",
+      "path": "benchmarks/dataset/build-record.json",
+      "commit": "f43e70372bdb1db6b3ba691605e28ac8747af8af",
+      "dirty": false,
+      "bytes": 3337,
+      "sha256": "55450a0796240177"
+    },
+    {
+      "repo": "Detection-by-Shadow",
+      "path": "results/submission_v2_giou.csv",
+      "commit": "f6ee29862593dcdecbcc8cf173e26b0fa8a700d0",
+      "dirty": false,
+      "bytes": 36847,
+      "sha256": "25b79ce5a1580b72"
+    },
+    {
+      "repo": "Detection-by-Shadow",
+      "path": "results/submission_v5_ensemble.csv",
+      "commit": "f6ee29862593dcdecbcc8cf173e26b0fa8a700d0",
+      "dirty": false,
+      "bytes": 37011,
+      "sha256": "4244a1e27485a3f5"
+    },
+    {
+      "repo": "Detection-by-Shadow",
+      "path": "data/train_data/train_data/image_*.json",
+      "commit": null,
+      "note": "gitignored in its own repo — local only, so no commit pins it",
+      "dirty": false,
+      "bytes": null,
+      "sha256": "a6321a0341adedef"
+    },
+    {
+      "repo": "CV-Pipeline-Deployment-Platform",
+      "path": "docs/evidence/training-run/run_metrics.json",
+      "commit": "20fc22f945b6f0715262114726cd56a053e5019f",
+      "dirty": false,
+      "bytes": 5849,
+      "sha256": "a1d562b1827fb3fb"
+    },
+    {
+      "repo": "NPEC-Plant-Phenotyping",
+      "path": "robot_control/pid/tuning_results.json",
+      "commit": "62c1949db40d618bad64a6702611e6e922f6d85e",
+      "dirty": false,
+      "bytes": 22026666,
+      "sha256": "a2fd106e22b4c4ea"
+    },
+    {
+      "repo": "NPEC-Plant-Phenotyping",
+      "path": "robot_control/rl/results/individual/test_results.json",
+      "commit": "62c1949db40d618bad64a6702611e6e922f6d85e",
+      "dirty": false,
+      "bytes": 3251,
+      "sha256": "89f66d3700cc4fff"
+    }
+  ],
+  "outputs": {
+    "emotion-timeline.json": {
+      "bytes": 6357,
+      "sha256": "4a86afd3187f5bc3"
+    },
+    "shadow.json": {
+      "bytes": 105132,
+      "sha256": "7fe1ae97a042c06a"
+    },
+    "cv-platform.json": {
+      "bytes": 2721,
+      "sha256": "9f4127813c0a5bbb"
+    },
+    "npec.json": {
+      "bytes": 34234,
+      "sha256": "9c931a69ab5bf6e7"
+    }
+  }
+}

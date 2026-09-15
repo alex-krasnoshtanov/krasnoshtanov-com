@@ -1,0 +1,218 @@
+@layer reset, base, page;
+
+@layer reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  body, h1, h2, h3, p, figure, figcaption, dl, dd { margin: 0; }
+  img, svg { display: block; max-width: 100%; }
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: var(--step-0);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-wrap: pretty;
+  }
+
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+
+  /* Visible focus that survives a dark-on-light page. Never remove this:
+     the whole page is links and it is how a keyboard reader navigates. */
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px;
+    padding: 0; margin: -1px; overflow: hidden;
+    clip-path: inset(50%); white-space: nowrap; border: 0;
+  }
+
+  .shell {
+    max-width: var(--shell);
+    margin-inline: auto;
+    padding-inline: var(--pad-x);
+  }
+
+  .mono, .num {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+  .num { font-weight: 500; }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: var(--step--2);
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+}
+
+@layer page {
+  /* --- masthead ----------------------------------------------------- */
+  .bar {
+    display: flex; flex-wrap: wrap; gap: var(--gap-xs);
+    justify-content: space-between; align-items: center;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  /* --- hero: the one place the page raises its voice ----------------- */
+  .hero { padding-block: clamp(2.5rem, 7vw, 4.5rem) clamp(2rem, 5vw, 3rem); }
+  .hero__name {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+  }
+  .hero__claim {
+    font-size: var(--step-4);
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    max-width: 24ch;
+    margin-block: var(--gap-s) var(--gap-m);
+  }
+  .hero__claim em { font-style: normal; color: var(--signal); }
+  .hero__lede { max-width: var(--measure); color: var(--ink-soft); }
+
+  /* Two per row on a phone, one row on a desktop. Explicit counts, never
+     auto-fit: auto-fit silently orphans the last cell when the item count
+     stops dividing evenly, and four links divide badly at most widths. */
+  .hero__links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap-xs);
+    margin-block: var(--gap-m) var(--gap-s);
+  }
+  .hero__links a {
+    display: flex; align-items: center;
+    min-height: 44px;               /* thumb-sized, not mouse-sized */
+    padding-inline: 0.75rem;
+    border: 1px solid var(--rule-firm);
+    color: var(--ink);
+    text-decoration: none;
+    font-size: var(--step--1);
+  }
+  .hero__links a:hover { border-color: var(--signal); color: var(--signal); }
+
+  @media (min-width: 46rem) {
+    .hero__links { display: flex; gap: var(--gap-m); }
+    .hero__links a {
+      min-height: 0; padding: 0 0 2px;
+      border: 0; border-bottom: 1px solid var(--rule-firm);
+      font-size: var(--step-0);
+    }
+  }
+
+  /* A measuring edge rather than a divider. */
+  .ticks {
+    height: 9px;
+    border-top: 1px solid var(--rule-firm);
+    background-image: repeating-linear-gradient(to right,
+      var(--rule-firm) 0 1px, transparent 1px 40px);
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+  }
+
+  /* --- project ------------------------------------------------------- */
+  .project { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  .project__head {
+    display: flex; flex-wrap: wrap; gap: var(--gap-xs);
+    justify-content: space-between; align-items: baseline;
+    padding-bottom: 0.9rem;
+  }
+  .project__finding {
+    font-size: var(--step-2);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -0.015em;
+    max-width: 36ch;
+    margin-block: var(--gap-m) var(--gap-s);
+  }
+  .project__body { max-width: var(--measure); color: var(--ink-soft); }
+
+  .project__grid { display: grid; gap: var(--gap-m); margin-top: var(--gap-m); }
+  @media (min-width: 56rem) {
+    .project__grid { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: var(--gap-l); align-items: start; }
+    .project__grid--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); }
+  }
+
+  /* --- stats -------------------------------------------------------- */
+  .stats { margin: 0; }
+  .stats > div {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: var(--gap-s);
+    padding-block: 0.55rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .stats dt { font-size: var(--step--1); color: var(--ink-soft); }
+  .stats dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats dd[data-signal] { color: var(--signal); }
+  .stats dd[data-warn]   { color: var(--warn); }
+
+  /* --- figure ------------------------------------------------------- */
+  figure { display: flex; flex-direction: column; gap: var(--gap-xs); }
+  figcaption { font-size: var(--step--2); font-family: var(--font-mono);
+               color: var(--ink-soft); line-height: 1.5; }
+
+  .caveat {
+    padding: var(--gap-s) 0 var(--gap-s) var(--gap-s);
+    border-left: 3px solid var(--warn);
+    max-width: 60ch;
+  }
+
+  /* --- short entries, the ones with no visual ----------------------- */
+  .brief { padding-block: var(--gap-m); border-bottom: 1px solid var(--rule); }
+  .brief h2 { font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em; }
+  .brief p { max-width: var(--measure); color: var(--ink-soft); margin-top: var(--gap-xs); }
+
+  footer { padding-block: var(--gap-m) var(--gap-l); color: var(--ink-soft); }
+}
+
+@layer page {
+  /* --- figure furniture -------------------------------------------- */
+  .chips { display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-s); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: var(--step--2);
+    color: var(--ink-soft);
+  }
+  /* The border is not decoration. Neutral is the palest fill and the most
+     common answer in the recording; without an edge its 12px swatch is
+     invisible against the paper. */
+  .chip i { width: 12px; height: 12px; border: 1px solid var(--rule-firm); }
+
+  .note { max-width: 58ch; line-height: 1.7; margin-top: var(--gap-s); }
+
+  /* --- one trunk, three targets ------------------------------------ */
+  .topo {
+    list-style: none; margin: var(--gap-s) 0 0; padding: 0;
+    display: grid; gap: 1px; background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .topo li {
+    background: var(--paper); padding: 0.6rem 0.75rem;
+    display: flex; flex-wrap: wrap; gap: 0.15rem var(--gap-s);
+    justify-content: space-between; align-items: baseline;
+  }
+  .topo b { font-size: var(--step--1); }
+  .topo span { font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft); }
+  .topo__trunk { background: var(--signal-wash); }
+  @media (min-width: 46rem) {
+    .topo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .topo__trunk { grid-column: 1 / -1; }
+  }
+
+  figure svg { width: 100%; height: auto; }
+}

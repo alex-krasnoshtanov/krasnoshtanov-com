@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.dev.vars
+# The seeded design canvas is 2.5 MB of generated editor code. The working
+# files under design/parts/ are the source of truth and are tracked.
+design/krasnoshtanov-site.html

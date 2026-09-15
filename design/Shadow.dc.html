@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Shadow — krasnoshtanov.com</title>
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+  /* Structural values lifted from Family-Website/packages/theme/tokens.css
+     (type scale, spacing, --measure). Palette is new: the PEC green is the
+     family business's identity and does not belong on a personal site. */
+  :root {
+    --paper:     oklch(0.968 0.004 250);
+    --paper-2:   oklch(0.945 0.005 250);
+    --ink:       oklch(0.235 0.018 250);
+    --ink-soft:  oklch(0.470 0.014 250);
+    --rule:      oklch(0.870 0.006 250);
+    --rule-firm: oklch(0.760 0.010 250);
+    /* two accents, same L and C, hue apart: signal = the system's answer,
+       warn = where it disagrees with itself or declines to answer */
+    --signal:    oklch(0.52 0.13 248);
+    --warn:      oklch(0.52 0.13 28);
+    --signal-wash: oklch(0.52 0.13 248 / 0.10);
+
+    --font-display: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+    --step--2: 0.75rem;                                    /* not fluid: 12px floor for tracked mono */
+    --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
+    --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
+    --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
+    --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
+    --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
+    --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+
+    --gap-xs: 0.5rem; --gap-s: 1rem; --gap-m: 2rem; --gap-l: 4rem;
+    --measure: 54ch; --shell: 1180px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font-family: var(--font-display); font-size: var(--step-0);
+         -webkit-font-smoothing: antialiased; text-wrap: pretty; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--ink); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .tag { font-family: var(--font-mono); font-size: var(--step--2);
+         letter-spacing: 0.08em; color: var(--ink-soft); }
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+         font-weight: 500; }
+
+  .ticks { height: 9px; border-top: 1px solid var(--rule-firm);
+           background-image: repeating-linear-gradient(to right,
+             var(--rule-firm) 0 1px, transparent 1px 40px);
+           background-size: 100% 5px; background-repeat: no-repeat; }
+  .finding { font-size: var(--step-2); font-weight: 600; line-height: 1.12;
+             letter-spacing: -0.015em; margin: 0; max-width: 34ch; }
+  .stat { display: flex; justify-content: space-between; align-items: baseline;
+          gap: var(--gap-s); padding: 9px 0; border-bottom: 1px solid var(--rule); }
+  .stat span:first-child { font-size: var(--step--1); color: var(--ink-soft); }
+  .stat span:last-child { font-family: var(--font-mono); font-weight: 500;
+                          font-variant-numeric: tabular-nums; }
+  .key { display: flex; gap: var(--gap-m); align-items: center; }
+  .key i { display: inline-block; width: 26px; height: 0; vertical-align: middle;
+           margin-right: 7px; }
+  </style>
+</helmet>
+
+<div style="min-height: 900px; display: flex; flex-direction: column; gap: var(--gap-m); max-width: var(--shell); width: 100%; margin: 0 auto; padding: 64px 40px; background: var(--paper)">
+
+  <div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 14px">
+      <span class="tag">Detection by Shadow</span>
+      <span class="tag">BrabantHack 2026 &#183; DEMCON deep tech track &#183; won &#183; team of three</span>
+    </div>
+    <div class="ticks"></div>
+  </div>
+
+  <h2 class="finding">The person is outside the frame. Their shadow isn&#39;t.</h2>
+
+  <div style="display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: var(--gap-l); align-items: start">
+
+    <div style="display: flex; flex-direction: column; gap: var(--gap-m)">
+      <p style="margin: 0; font-size: var(--step-0); line-height: 1.55; color: var(--ink-soft)">Given a frame where the pedestrian is entirely out of shot, predict the box they occupy anyway. Re&#8209;describing that box against the edge it hides behind &#8212; which side, how far out, how wide, how tall &#8212; took mean IoU from 0.4675 to 0.6096, because a distance and a width cannot describe an impossible box the way two loose corners can.</p>
+      <p class="tag" style="margin: 0; line-height: 1.6">Nobody is ever clipped by the frame edge, so which side they are on has no ambiguous middle case. One mean box for all 1,692 training frames scores <span class="num" style="color: var(--ink)">0.0000</span> &#8212; the boxes sit on both sides. Splitting by side is what creates a floor at all, and it is the same idea the model needed.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: var(--gap-m)">
+
+      <div style="display: flex; flex-direction: column; gap: var(--gap-xs)">
+        <svg viewBox="-350 -50 1440 580" style="width: 100%; height: auto; display: block" role="img" aria-label="A dashed 720 by 480 camera frame. Twelve predicted bounding boxes sit entirely outside it, six beyond the left edge and six beyond the right, none of them touching the frame.">
+          <defs>
+            <pattern id="outside" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="0" y2="8" stroke="var(--rule-firm)" stroke-width="1.1"/>
+            </pattern>
+          </defs>
+
+          <rect x="-350" y="-50" width="350" height="580" fill="url(#outside)" opacity="0.55"/>
+          <rect x="{{frameW}}" y="-50" width="370" height="580" fill="url(#outside)" opacity="0.55"/>
+          <text x="-336" y="-18" font-size="28" fill="var(--ink-soft)" font-family="IBM Plex Mono, monospace">outside the sensor</text>
+
+          <rect x="0" y="0" width="{{frameW}}" height="{{frameH}}" fill="none"
+                stroke="var(--ink)" stroke-width="3" stroke-dasharray="17 13"/>
+          <text x="14" y="-18" font-size="28" fill="var(--ink-soft)" font-family="IBM Plex Mono, monospace">{{frameLabel}} &#8212; what the camera sees</text>
+
+          <polygon points="0,300 250,{{frameH}} 0,{{frameH}}" fill="var(--signal)" opacity="0.12"/>
+          <text x="20" y="{{shadowLabelY}}" font-size="26" fill="var(--signal)" font-family="IBM Plex Mono, monospace">shadow (indicative &#8212; frames not shown)</text>
+
+          <sc-for list="{{boxes}}" as="b" hint-placeholder-count="12">
+            <rect x="{{b.v2x}}" y="{{b.v2y}}" width="{{b.v2w}}" height="{{b.v2h}}"
+                  fill="none" stroke="var(--rule-firm)" stroke-width="2.5" stroke-dasharray="9 7"/>
+          </sc-for>
+          <sc-for list="{{boxes}}" as="b" hint-placeholder-count="12">
+            <rect x="{{b.v5x}}" y="{{b.v5y}}" width="{{b.v5w}}" height="{{b.v5h}}"
+                  fill="none" stroke="var(--signal)" stroke-width="3.5">
+              <title>{{b.title}}</title>
+            </rect>
+          </sc-for>
+        </svg>
+
+        <div class="key tag">
+          <span><i style="border-top: 2px dashed var(--rule-firm)"></i>v2, GIoU loss</span>
+          <span><i style="border-top: 3px solid var(--signal)"></i>v5, decomposed + 3&#8209;seed ensemble</span>
+        </div>
+        <p class="tag" style="margin: 0; line-height: 1.6">Twelve of the {{total}} test predictions, six per side, both generations on the same frames. Coordinates from <a href="https://github.com/alex-krasnoshtanov/Detection-by-Shadow/blob/main/results/submission_v5_ensemble.csv">results/submission_v5_ensemble.csv</a>. The IoU ladder is recorded in <a href="https://github.com/alex-krasnoshtanov/Detection-by-Shadow/blob/main/docs/experiments.md">docs/experiments.md</a>, not recomputed here.</p>
+      </div>
+
+      <div>
+        <div class="stat"><span>predict&#8209;the&#8209;mean floor, per side</span><span>0.4295</span></div>
+        <div class="stat"><span>organisers&#39; hidden test set</span><span style="color: var(--signal)">0.626</span></div>
+        <div class="stat"><span>predicted left of frame / right of frame</span><span>{{left}} / {{right}}</span></div>
+        <div class="stat"><span>walking direction: declines to answer</span><span style="color: var(--warn)">{{abstains}} / {{total}}</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+
+<script data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+// Derived from ../data/ by build-artboards.mjs. Do not hand-edit.
+    var FRAME = [720,480];
+    var BOXES = [{"id":"image_1813","side":"left","v2":[-304,217.9,-136.4,431.6],"v5":[-305.7,220.7,-183.1,436.9]},{"id":"image_2191","side":"left","v2":[-289.3,217.7,-126.8,437.1],"v5":[-295.5,217.9,-190.3,441.6]},{"id":"image_1658","side":"left","v2":[-285.6,217.3,-122.7,441.6],"v5":[-291.7,218.1,-183.4,441.6]},{"id":"image_2992","side":"left","v2":[-295.5,218.1,-132.8,438.1],"v5":[-290.4,221.2,-176,427.8]},{"id":"image_2140","side":"left","v2":[-285.2,216.1,-117.1,449.8],"v5":[-289.2,218.3,-174.3,444.9]},{"id":"image_790","side":"left","v2":[-286.2,218.1,-126.7,439.2],"v5":[-288.5,218.4,-177.4,441.3]},{"id":"image_944","side":"right","v2":[832.5,217,991.5,444],"v5":[892.7,217.5,984.7,434.9]},{"id":"image_1848","side":"right","v2":[814.3,216.8,966.3,444.9],"v5":[872.2,219.3,981,435.6]},{"id":"image_1574","side":"right","v2":[832.7,217,996.4,445.9],"v5":[866.7,219.2,975.4,436]},{"id":"image_937","side":"right","v2":[823.8,216.3,985.4,453.2],"v5":[837.1,219.2,973.9,452.4]},{"id":"image_990","side":"right","v2":[836.8,217.6,993.8,444.9],"v5":[871.3,216.6,970.3,445.9]},{"id":"image_1775","side":"right","v2":[802.4,220.8,963.5,405.9],"v5":[860.3,220.4,970.1,429.6]}];
+    var LEFT = 229;
+    var RIGHT = 185;
+    var ABSTAINS = 407;
+    var TOTAL = 414;
+    // Holes are dotted lookups only, so every bit of arithmetic lives here.
+    var geom = function (q) {
+      return { x: q[0], y: q[1], w: q[2] - q[0], h: q[3] - q[1] };
+    };
+    var boxes = BOXES.map(function (b) {
+      var p = geom(b.v2), t = geom(b.v5);
+      return {
+        v2x: p.x, v2y: p.y, v2w: p.w, v2h: p.h,
+        v5x: t.x, v5y: t.y, v5w: t.w, v5h: t.h,
+        title: b.id + " — " + b.side + " of frame, xmin " + b.v5[0]
+      };
+    });
+    return {
+      boxes: boxes,
+      frameW: FRAME[0],
+      frameH: FRAME[1],
+      frameLabel: FRAME[0] + " × " + FRAME[1],
+      shadowLabelY: FRAME[1] - 16,
+      left: LEFT,
+      right: RIGHT,
+      abstains: ABSTAINS,
+      total: TOTAL
+    };
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+# The CV is built and published by the CV repo's own GitHub Action. Redirecting
+# rather than copying the PDF here keeps one publisher and one source of truth,
+# so there is no second copy to go stale and no cache to purge after a rebuild.
+# 302, not 301: if the PDF ever moves onto this domain, a permanent redirect
+# would already be cached in people's browsers.
+/cv.pdf   https://alex-krasnoshtanov.github.io/CV/resume.pdf   302
+/resume.pdf   https://alex-krasnoshtanov.github.io/CV/resume.pdf   302
