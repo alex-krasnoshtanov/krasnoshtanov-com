@@ -434,12 +434,34 @@
     that a pinned stage is not most of a phone's scrolling, and the reader not
     having asked for less motion.
   */
-  @supports (animation-timeline: view()) {
-    @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
-      .runway {
-        /* Shorter than the rail's, because the stage also carries the heading
-           and the legend and all three have to fit one screen. */
-        --tl-h: min(38svh, 22rem);
+  @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+    /*
+      `data-pan` is written by the script in index.astro once it knows whether
+      this browser has scroll-driven animation: "native" if it does, "js" if it
+      does not. Both get the layout below; only "native" gets the CSS
+      animation, and "js" has its transform written on scroll instead.
+
+      The gate used to be @supports, which meant Firefox — no view-timeline as
+      of today — got the draggable rail while Chrome got the pin. This page is
+      opened by whoever a recruiter happens to use, so the behaviour should not
+      depend on that.
+
+      With JavaScript off nothing sets the attribute, none of this applies, and
+      the section is the draggable rail. That is a working timeline, just a
+      manual one.
+    */
+    .runway[data-pan] {
+        /* Still shorter than the rail's min(58svh, 34rem), because the stage
+           also carries the heading and the legend and all three have to fit
+           one screen — but not by as much as it was.
+
+           This one value sets both how big the drawing is and how long the
+           pin lasts, because a shorter drawing is a narrower one and the
+           travel is its width minus the viewport. At 38svh the recording was
+           noticeably smaller than the draggable version AND went past in a
+           couple of seconds; at 52svh it is close to full size and takes
+           roughly five. Raise it and both grow together. */
+        --tl-h: min(52svh, 30rem);
 
         /* The drawing's own proportions, which decide how far it must travel.
            1 unit is 1 second, so this is (recording length) / (drawing
@@ -460,7 +482,7 @@
         view-timeline-axis: block;
       }
 
-      .stage {
+      .runway[data-pan] .stage {
         position: sticky; top: 0; height: 100svh; overflow: hidden;
         display: grid;
         /* minmax(0, 1fr), not the default `auto`. An auto column sizes to its
@@ -472,16 +494,17 @@
         align-content: center; gap: var(--gap-m);
         padding-block: var(--gap-m);
       }
-      .stage .rail { min-width: 0; }
-      .stage > .travel {
+      .runway[data-pan] .stage > .travel {
         margin-top: 0;
         display: flex; flex-direction: column; justify-content: center;
         gap: var(--gap-m);
       }
 
       /* The rail stops being a scroll container and becomes a window. */
-      .stage .rail { overflow: hidden; position: relative; }
-      .stage .pan {
+      .runway[data-pan] .rail { overflow: hidden; position: relative; min-width: 0; }
+
+      /* Native only. The "js" path writes the same transform on scroll. */
+      .runway[data-pan="native"] .pan {
         animation: travel-recording linear both;
         animation-timeline: --recording;
         animation-range: contain 0% contain 100%;
@@ -493,14 +516,15 @@
 
       /* A mark the recording runs past. Without it the drawing slides and
          nothing says where "now" is. */
-      .stage .rail::after {
+      .runway[data-pan] .rail::after {
         content: ""; position: absolute; inset-block: 0; left: 50%;
         width: 2px; background: var(--signal); opacity: 0.45;
       }
 
-      /* "drag sideways" is a lie once the rail no longer scrolls. */
-      .project--travel .rail__hint { display: none; }
-    }
+      /* "drag sideways" is a lie once the rail no longer scrolls — and it is
+         still the truth when the pin never engaged, so this follows the
+         attribute rather than the media query. */
+      .runway[data-pan] + .rail__hint { display: none; }
   }
 
   /* --- rail of cards ----------------------------------------------------- */
