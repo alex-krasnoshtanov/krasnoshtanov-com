@@ -35,16 +35,16 @@ const figures: Record<string, { svg: string; extra?: string; legend?: string }> 
 // The shape is chosen by what the figure IS, not to rotate for variety's sake:
 //   pin   — the figure holds a full-height stage while its readings pass it
 //   rail  — the figure is wider than any screen, so you travel along it
-//   bleed — the figure takes the whole viewport width, prose stays in column
+//   split — the figure and the words sit side by side
 //
 // `shadow` pins because its drawing is a single scene you point a light at.
 // `timeline` rails because it is a 3099-unit-wide picture of 52 minutes:
 // scrubbing sideways through a recording is what the data already is.
-const shapes: Record<string, "pin" | "rail" | "bleed"> = {
+const shapes: Record<string, "pin" | "rail" | "split"> = {
   shadow: "pin",
   timeline: "rail",
-  platform: "bleed",
-  npec: "bleed",
+  platform: "split",
+  npec: "split",
 };
 
 const title = "Oleksii Krasnoshtanov";
@@ -118,7 +118,7 @@ const site = "https://krasnoshtanov.com";
         {
           projects.map((p, i) => {
             const fig = p.visual ? figures[p.visual] : undefined;
-            const shape = shapes[p.id] ?? "bleed";
+            const shape = shapes[p.id] ?? "split";
             const stats = (
               <dl class="stats">
                 {p.stats.map((s) => (
@@ -216,12 +216,26 @@ const site = "https://krasnoshtanov.com";
             }
 
             return (
-              <section class="project project--bleed" id={p.id}>
+              <section class="project project--split" id={p.id}>
                 {head}
-                <div class="bleed">{figure}</div>
-                <div class="shell project__grid project__grid--wide">
-                  <div>{prose}</div>
-                  <div>{stats}</div>
+                {/*
+                  Figure and words side by side, the way the pinned section
+                  reads. Stacked — a heading, then a full-width panel, then
+                  prose arriving underneath — they were three separate objects
+                  and the panel cut the section in half.
+
+                  Source order is figure, words, stats, which is the right
+                  reading order on one column. On two, the stats move back
+                  UNDER the figure rather than sitting beside the prose: the
+                  prose column runs much longer than the figure, and with the
+                  stats over there too the section ended in 400px of nothing.
+                  Split this way the two columns finish within a line of each
+                  other, and the stats get the width to stop wrapping.
+                */}
+                <div class="split">
+                  {figure}
+                  <div class="split__words">{prose}</div>
+                  {stats}
                 </div>
               </section>
             );
