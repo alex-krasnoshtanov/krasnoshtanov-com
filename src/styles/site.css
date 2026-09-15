@@ -322,10 +322,15 @@
   /* Side borders off and the page gutter moved inside, so the figure reads as
      a band laid across the page rather than a wide card sitting on it. */
   .bleed > figure { border-inline: 0; padding-inline: var(--pad-x); }
-  .bleed > figure > svg { max-height: 74vh; }
+  /* The band still runs edge to edge; the drawing inside it stops at --wide.
+     A 1000x320 curve stretched across 2464px is a ribbon, not a chart. */
+  .bleed > figure > svg { max-height: 74vh; max-width: var(--wide); margin-inline: auto; }
 
   /* --- pin: the stage holds while the readings go past ------------------- */
-  .pin { padding-inline: var(--pad-x); display: grid; gap: var(--gap-m); }
+  .pin {
+    padding-inline: var(--pad-x); display: grid; gap: var(--gap-m);
+    max-width: var(--wide); margin-inline: auto;
+  }
 
   @media (min-width: 64rem) {
     .pin {
@@ -382,10 +387,25 @@
   }
 
   /* --- rail of cards ----------------------------------------------------- */
-  .rail--cards { scroll-snap-type: x proximity; }
+  .rail--cards {
+    scroll-snap-type: x proximity;
+    /* Snapping aligns a card's start edge with the SCROLLPORT's start edge,
+       which is the viewport edge — so on load the rail quietly scrolled itself
+       48px and ate the track's left gutter, leaving the first card flush
+       against the screen while the heading above it kept its margin. This
+       tells snapping where the gutter is. */
+    scroll-padding-inline: var(--pad-x);
+  }
   .rail--cards .rail__track {
     display: flex; align-items: stretch; gap: var(--gap-m);
     width: max-content; padding-inline: var(--pad-x);
+    /* Does both jobs, with no breakpoint and no measuring.
+       Wider screen than track: the auto margins split the slack and the three
+       cards sit centred. Narrower: auto margins cannot go negative, so they
+       resolve to 0, the track stays flush left and the rail scrolls from its
+       true start. Without this the track was a left-aligned max-content block
+       — at 2560px that put 0px of air on the left and 480px on the right. */
+    margin-inline: auto;
   }
   .card {
     scroll-snap-align: start; width: min(40rem, 86vw);
@@ -405,9 +425,11 @@
      line their repository links up. */
   .card__repo { margin-top: auto; }
 
-  /* Three 36rem cards plus gutters stop overflowing past about 118rem, and a
-     "drag sideways" that drags nowhere is a lie. */
-  @media (min-width: 119rem) {
+  /* The exact width at which the track stops overflowing, and past which a
+     "drag sideways" would be pointing at nothing:
+       3 cards x 40rem + 2 gaps x 2rem + 2 gutters x 3rem = 130rem.
+     Change any of those three and change this with them. */
+  @media (min-width: 130rem) {
     .rail--cards + .rail__hint { display: none; }
   }
 }

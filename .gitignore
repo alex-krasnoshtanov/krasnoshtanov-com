@@ -13,3 +13,9 @@ design/krasnoshtanov-site.html
 # Playwright MCP writes explicitly-named screenshots to the workspace root.
 *.png
 !public/*.png
+
+# Agent scratch space: worktrees, local settings, session state. CLAUDE.md is
+# here too, by choice — it is working notes for whoever is at the keyboard,
+# not documentation the repository owes anyone. README.md is the public one.
+.claude/
+CLAUDE.md
