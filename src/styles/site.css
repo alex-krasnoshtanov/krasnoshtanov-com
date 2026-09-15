@@ -263,8 +263,24 @@
    --------------------------------------------------------------------------- */
 @layer motion {
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    #work:has(.project:hover) .project:not(:hover) { opacity: 0.45; }
     .project { transition: opacity 260ms ease; }
+
+    /* The section filling the screen is the subject.
+
+       This was `#work:has(.project:hover) .project:not(:hover)` — the subject
+       was wherever the POINTER was. Two things wrong with that. Chromium
+       re-resolves :hover during a scroll and Firefox does not, so on Firefox
+       the highlight stayed on whatever the cursor was last over until you
+       nudged the mouse. And more basically, a resting mouse is not a statement
+       about what someone is reading; it is just where they left it.
+
+       Hover is gone rather than kept as an override, because an override that
+       is stale on one engine is the bug, not the fallback.
+
+       Scoped to [data-attend], which the script sets only when it is going to
+       keep data-current up to date — without that guard a page with no
+       JavaScript would dim every section to 45% and leave them there. */
+    [data-attend] #work .project:not([data-current]) { opacity: 0.45; }
   }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -604,7 +620,88 @@
   .rail .project__body,
   .rail .stats,
   .rail .note,
-  .rail .card__finding {
+  .rail .card__finding,
+  /* The pinned timeline's own figure. Its motion is the pan; a clip-path
+     reveal on top of that is a second thing happening to the same element,
+     and the JS path skips it for the same reason. */
+  .travel {
     animation: none;
+  }
+
+  /* ---------------------------------------------------------------------------
+     THE SAME MOTION, WITHOUT SCROLL-DRIVEN ANIMATION
+
+     Everything above needs `animation-timeline`, which Firefox has not
+     shipped. On Firefox none of it existed: no reveals, no settling headings,
+     no curve drawing itself, no progress bar. Chrome visitors got a page that
+     was visibly more alive than Firefox visitors got, which for a portfolio is
+     the wrong difference to ship.
+
+     So where the feature is missing, the script sets data-motion="js" on the
+     root and marks each element [data-seen] as it arrives. These are the same
+     "before" states the keyframes above start from, reached by transition
+     instead.
+
+     The honest difference: a scroll-driven animation is SCRUBBED — it runs
+     backwards when you scroll back up. These play once and stay. For a fade
+     and a rise that is invisible unless you go looking for it.
+
+     Only elements that were below the fold when the script ran are ever in the
+     unseen state, so nothing on screen is hidden and then shown again.
+     --------------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+      Every rule here keys off data-reveal, which ONLY the script writes, and
+      only onto elements it has taken responsibility for revealing.
+
+      That is the whole point and it is worth stating plainly, because the
+      first version of this did not do it and broke the page. It hid elements
+      by type — `figure:not([data-seen])` — while the script skipped some of
+      those same elements (anything inside a rail, and the pinned timeline).
+      Skipped meant never marked, never marked meant never revealed, and three
+      card diagrams and the timeline were clipped to nothing, permanently, in
+      Firefox only. Two selectors describing "the same" set, drifting apart.
+
+      Now there is one set: the script's. If it does not tag an element, no
+      rule below can touch it.
+    */
+    [data-reveal] { transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+    [data-reveal="rise"] { transition-property: opacity, transform; transition-duration: 620ms; }
+    [data-reveal="rise"]:not([data-seen]) { opacity: 0; transform: translateY(1.6rem); }
+
+    [data-reveal="develop"] { transition-property: clip-path; transition-duration: 760ms; }
+    [data-reveal="develop"]:not([data-seen]) { clip-path: inset(0 0 100% 0); }
+
+    [data-reveal="settle"] {
+      transition-property: font-variation-settings, opacity; transition-duration: 700ms;
+    }
+    [data-reveal="settle"]:not([data-seen]) {
+      font-variation-settings: "opsz" 48, "wdth" 92, "wght" 250;
+      opacity: 0.5;
+    }
+
+    /* stroke-dasharray lives in the @supports block above, so it has to be
+       restated — without a dash there is nothing to offset and the curve just
+       appears. pathLength="1" is on the path itself, which is what lets the
+       dash be a fraction with nothing measuring it. */
+    [data-reveal="draw"] {
+      stroke-dasharray: 1;
+      transition-property: stroke-dashoffset; transition-duration: 1300ms;
+    }
+    [data-reveal="draw"]:not([data-seen]) { stroke-dashoffset: 1; }
+
+    [data-reveal="pop"] {
+      transform-box: fill-box; transform-origin: center;
+      transition-property: opacity, transform; transition-duration: 420ms;
+    }
+    [data-reveal="pop"]:not([data-seen]) { opacity: 0; transform: scale(0.2); }
+
+    /* The bar is the exception: not a reveal, and so not tagged. It reports
+       position continuously from --scrolled, written on scroll. */
+    [data-motion="js"] .progress {
+      display: block;
+      transform: scaleX(var(--scrolled, 0));
+    }
   }
 }
