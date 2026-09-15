@@ -16,6 +16,22 @@ export default defineConfig({
   // `astro dev` and `astro preview` do not read _headers.
   build: { inlineStylesheets: "never" },
 
+  // esbuild, not the default lightningcss.
+  //
+  // lightningcss folds `animation-timeline` into the `animation` shorthand,
+  // because CSS Animations Level 2 puts it there. No browser accepts it
+  // there — the shorthand resets the timeline but will not take one as a
+  // value — so `animation: linear both settle view()` is invalid and the
+  // whole declaration is dropped.
+  //
+  // That shipped. Every scroll-driven animation on this page was silently
+  // dead in production while working perfectly in `astro dev`, and the
+  // progress bar, which never got its transform, sat at full width as a
+  // permanent line across the top of the screen. scripts/check.mjs now fails
+  // the build if an `animation` shorthand in the emitted CSS ever contains
+  // view() or scroll() again.
+  vite: { build: { cssMinify: "esbuild" } },
+
   // Self-hosted rather than a <link> to Google's CDN: one less
   // render-blocking third-party request, and no EU question about who gets
   // the visitor's IP. The Fonts API is stable in 7.x, no flag needed.

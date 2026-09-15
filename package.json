@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "node scripts/check.mjs --data && astro build && node scripts/csp.mjs && node scripts/check.mjs --dist",
-    "preview": "astro preview",
+    "preview": "npm run build && astro preview",
     "check": "astro check",
     "check:data": "node scripts/check.mjs --data",
     "check:dist": "node scripts/check.mjs --dist",

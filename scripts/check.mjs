@@ -447,6 +447,56 @@ function checkDist() {
     }
   }
 
+  const emittedCss = files
+    .filter((f) => extname(f) === ".css")
+    .map((f) => readFileSync(f, "utf8"))
+    .join("\n");
+
+  // No scroll-driven timeline smuggled into the `animation` shorthand.
+  //
+  // A CSS minifier will happily fold `animation-timeline` into `animation`,
+  // because CSS Animations Level 2 puts it there. No browser accepts it
+  // there, so the whole declaration becomes invalid and is dropped — which
+  // means every scroll-driven animation on the page stops existing, in
+  // production only, while `astro dev` serves the unminified CSS and looks
+  // perfect. It shipped that way once: the page had zero running animations
+  // and a progress bar frozen at full width across the top of the screen.
+  const smuggled = [...emittedCss.matchAll(/animation:[^;}]*/g)]
+    .map((m) => m[0])
+    .filter((decl) => /\b(?:view|scroll)\(/.test(decl));
+  if (smuggled.length) {
+    fail(
+      `${smuggled.length} animation shorthand(s) carry a scroll timeline, which every browser rejects — ` +
+        `e.g. "${smuggled[0].slice(0, 70)}". Keep animation-timeline in its own declaration.`,
+    );
+  } else {
+    pass("no scroll timeline folded into an animation shorthand");
+  }
+
+  // The pinned timeline pans by a distance CSS computes from the drawing's
+  // proportions, but the drawing's WIDTH comes from the data — it is the
+  // recording's length in seconds. Re-prep a longer recording and the CSS
+  // constant is silently wrong: the pan stops short of the end, or runs past
+  // it into empty space. Neither throws, neither shows up in any other check,
+  // and both only appear on a screen wide enough to pin.
+  const tlBox = index.match(/<svg class="tl" viewBox="0 0 ([\d.]+) ([\d.]+)"/);
+  if (!tlBox) {
+    fail("no timeline svg found to check --tl-aspect against");
+  } else {
+    const actual = Number(tlBox[1]) / Number(tlBox[2]);
+    const declared = Number(emittedCss.match(/--tl-aspect:\s*([\d.]+)/)?.[1]);
+    if (!declared) {
+      fail("--tl-aspect is not in the emitted CSS, so the pinned timeline has no pan distance");
+    } else if (Math.abs(declared - actual) / actual > 0.005) {
+      fail(
+        `--tl-aspect is ${declared} but the timeline viewBox is ${actual.toFixed(4)} — ` +
+          `the recording would stop panning in the wrong place`,
+      );
+    } else {
+      pass(`--tl-aspect ${declared} matches the timeline viewBox (${actual.toFixed(4)})`);
+    }
+  }
+
   // The CV link is the one thing a recruiter is most likely to click.
   const redirects = read("public/_redirects");
   if (!redirects.includes("/cv.pdf")) fail("public/_redirects has no /cv.pdf rule");
