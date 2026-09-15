@@ -303,19 +303,42 @@
       .pf-line { stroke-dasharray: 1; animation: draw linear both; animation-timeline: view(); animation-range: entry 18% cover 62%; }
       .pf-zero, .pf-best { transform-box: fill-box; transform-origin: center; animation: pop linear both; animation-timeline: view(); animation-range: cover 40% cover 70%; }
 
-      .progress {
-        position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 7;
-        background: var(--signal); transform-origin: left;
-        animation: progress linear both; animation-timeline: scroll(root block);
-      }
     }
   }
 
-  /* Without the feature, or under reduced motion, the curve is simply drawn
-     and there is no progress bar reporting a scroll nothing responds to. */
-  .progress { display: none; }
+  /* ---------------------------------------------------------------------------
+     THE PROGRESS BAR
+
+     What the bar LOOKS like does not depend on scroll-driven animation. Only
+     what drives it does, and the two used to be written as one rule inside
+     @supports (animation-timeline: view()).
+
+     So on Firefox, which skips that block, the fallback further down switched
+     the element to display:block and gave it a transform — onto an element
+     with no position, no height and no background. A 0px invisible div
+     reporting the scroll to nobody, which is why the bar existed in Chrome
+     and not in Firefox.
+
+     Appearance here, hidden by default. Each path below turns it on and says
+     what moves it.
+     --------------------------------------------------------------------------- */
+  .progress {
+    display: none;
+    position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 7;
+    background: var(--signal);
+    transform: scaleX(0); transform-origin: left;
+  }
+
+  /* Under reduced motion there is no bar at all: it reports a scroll that
+     nothing else on the page responds to. */
   @media (prefers-reduced-motion: no-preference) {
-    @supports (animation-timeline: scroll()) { .progress { display: block; } }
+    @supports (animation-timeline: scroll()) {
+      .progress {
+        display: block;
+        animation: progress linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
   }
 }
 
