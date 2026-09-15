@@ -382,6 +382,13 @@ const site = "https://krasnoshtanov.com";
       // while the pointer is inside it; otherwise the nearest data-cursor
       // ancestor supplies the text.
       let hold: string | null = null;
+      // WHICH figure is holding, not just that something is. A held reading
+      // used to be cleared only by a pointerout on the element that set it,
+      // and that event is not guaranteed: scroll a figure out from under a
+      // still pointer and no boundary event need fire at all. The reading then
+      // outlived the figure it came from and followed the cursor down the rest
+      // of the page until some other label happened to replace it.
+      let holder: Element | null = null;
       const show = (text: string | null) => {
         if (!cursor || !fine) return;
         if (text) {
@@ -391,7 +398,9 @@ const site = "https://krasnoshtanov.com";
           cursor.removeAttribute("data-on");
         }
       };
-      const label = (text: string) => {
+      /** Each figure gets its own labeller, bound to the element it draws in. */
+      const labelFor = (el: Element) => (text: string) => {
+        holder = el;
         hold = text;
         show(text);
       };
@@ -401,8 +410,17 @@ const site = "https://krasnoshtanov.com";
           "pointerover",
           (e) => {
             const hit = (e.target as Element)?.closest?.("[data-cursor]");
-            if (hit) show(hit.getAttribute("data-cursor"));
-            else if (!hold) show(null);
+            // The pointer is somewhere else now, so nothing is being held —
+            // however the pointer got here, and whether or not the figure it
+            // came from ever saw it leave.
+            if (hit !== holder) {
+              hold = null;
+              holder = null;
+            }
+            // A figure's live reading outranks its element's static label,
+            // which also stops "move the light" flickering over the reading
+            // every time the pointer crosses a shape inside the drawing.
+            show(hold ?? (hit ? hit.getAttribute("data-cursor") : null));
           },
           { passive: true },
         );
@@ -411,6 +429,7 @@ const site = "https://krasnoshtanov.com";
           (e) => {
             const hit = (e.target as Element)?.closest?.("[data-cursor]");
             if (!hit) return;
+            if (hit === holder) holder = null;
             hold = null;
             show(null);
           },
@@ -484,7 +503,7 @@ const site = "https://krasnoshtanov.com";
               if (!entry.isIntersecting) continue;
               obs.disconnect();
               load()
-                .then((m) => m.attach(svg as any, label))
+                .then((m) => m.attach(svg as any, labelFor(svg)))
                 .catch(() => {
                   /* The static drawing stands. Nothing to recover. */
                 });
