@@ -451,9 +451,17 @@
       manual one.
     */
     .runway[data-pan] {
-        /* Shorter than the rail's, because the stage also carries the heading
-           and the legend and all three have to fit one screen. */
-        --tl-h: min(38svh, 22rem);
+        /* Still shorter than the rail's min(58svh, 34rem), because the stage
+           also carries the heading and the legend and all three have to fit
+           one screen — but not by as much as it was.
+
+           This one value sets both how big the drawing is and how long the
+           pin lasts, because a shorter drawing is a narrower one and the
+           travel is its width minus the viewport. At 38svh the recording was
+           noticeably smaller than the draggable version AND went past in a
+           couple of seconds; at 52svh it is close to full size and takes
+           roughly five. Raise it and both grow together. */
+        --tl-h: min(52svh, 30rem);
 
         /* The drawing's own proportions, which decide how far it must travel.
            1 unit is 1 second, so this is (recording length) / (drawing
