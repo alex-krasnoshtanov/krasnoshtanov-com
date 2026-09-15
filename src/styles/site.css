@@ -103,6 +103,13 @@
     justify-content: space-between; align-items: center;
     padding-block: 1rem; border-bottom: 1px solid var(--rule);
   }
+  /* On a phone this bar is the domain you already typed and a build date
+     nobody asked for, wrapping onto two lines above the one thing the screen
+     is for. The name should be the first thing. On a wide screen it is a
+     single quiet line and it earns its place, so it stays. */
+  @media (max-width: 46rem) {
+    .bar { display: none; }
+  }
 
   /* --- hero --------------------------------------------------------- */
   .hero { padding-block: clamp(3rem, 9vw, 7rem) clamp(2rem, 5vw, 3.5rem); }
@@ -317,19 +324,51 @@
   .hero__cue { margin-top: var(--gap-l); display: flex; align-items: center; gap: var(--gap-xs); }
   .hero__cue::before { content: ""; width: 2.5rem; height: 1px; background: var(--rule-firm); }
 
-  /* --- bleed: the figure spans the viewport, the prose does not ---------- */
-  .bleed { margin-block: var(--gap-m); }
-  /* Side borders off and the page gutter moved inside, so the figure reads as
-     a band laid across the page rather than a wide card sitting on it. */
-  .bleed > figure { border-inline: 0; padding-inline: var(--pad-x); }
-  /* The band still runs edge to edge; the drawing inside it stops at --wide.
-     A 1000x320 curve stretched across 2464px is a ribbon, not a chart. */
-  .bleed > figure > svg { max-height: 74vh; max-width: var(--wide); margin-inline: auto; }
+  /* --- split: the figure and the words, side by side --------------------- */
+  /*
+    This was a full-bleed band with the prose stacked underneath, and it read
+    as three disconnected objects: an orphaned heading, a boxed chart, then
+    text arriving after it. The panel around the figure was doing most of the
+    damage — a filled rectangle with borders cuts a section in half far more
+    than any gap size fixes.
+
+    So: no panel, and the words move alongside, which is the arrangement the
+    pinned section already uses and the only one on the page that felt
+    settled. Measured on the platform section, this is also ~20% shorter than
+    the stacked version it replaces.
+  */
+  .split {
+    padding-inline: var(--pad-x);
+    max-width: var(--wide); margin-inline: auto;
+    /* One step up the scale from the old 2rem. A heading and the figure it
+       introduces were clearing each other by 32px, which against type this
+       large read as crowded. The three shapes all use this same value, so a
+       heading meets its visual identically whichever one follows. */
+    margin-top: var(--gap-l);
+    display: grid; gap: var(--gap-m);
+  }
+  /* The drawing sits on the page ground, not in a card. */
+  .split > figure { background: none; border: 0; padding-inline: 0; }
+  .split > figure > svg { max-height: 74vh; }
+
+  @media (min-width: 64rem) {
+    .split {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 21rem);
+      column-gap: var(--gap-l); row-gap: var(--gap-m);
+      align-items: start;
+    }
+    /* Source order is figure, words, stats — correct on one column. On two,
+       the stats return to under the figure so both columns end together. */
+    .split > figure       { grid-column: 1; grid-row: 1; }
+    .split > .split__words { grid-column: 2; grid-row: 1 / span 2; }
+    .split > .stats       { grid-column: 1; grid-row: 2; }
+  }
 
   /* --- pin: the stage holds while the readings go past ------------------- */
   .pin {
     padding-inline: var(--pad-x); display: grid; gap: var(--gap-m);
     max-width: var(--wide); margin-inline: auto;
+    margin-block-start: var(--gap-l);
   }
 
   @media (min-width: 64rem) {
@@ -370,6 +409,9 @@
     scrollbar-color: var(--rule-firm) transparent;
   }
   .rail:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
+  /* 16px between a heading and the thing it introduces read as crowded; every
+     visual now clears its heading by the same 48px. */
+  .project--rail .rail { margin-top: var(--gap-l); }
   .rail__hint { margin-top: var(--gap-xs); color: var(--ink-soft); opacity: 0.7; }
 
   /* The timeline figure at the width it was drawn: 3099 units of a 52-minute
