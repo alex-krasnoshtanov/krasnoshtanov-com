@@ -15,7 +15,7 @@ export interface TimelineData {
   scenes_whisper: number[][];
 }
 
-const H = { trackA: 0, band: 124, trackB: 202, tick: 330, total: 372 };
+const H = { trackA: 0, band: 124, trackB: 202, tick: 330, label: 392, total: 408 };
 
 /** Which emotion a track answers at each whole second. A scene spanning
  *  [start, end) covers every integer t with ceil(start) <= t < end. This
@@ -71,13 +71,25 @@ export function render(d: TimelineData): string {
     .map(([s, e]) => `<rect x="${s}" y="${H.band}" width="${Math.max(e - s, 2)}" height="66" fill="var(--warn)"/>`)
     .join("");
 
-  // Ticks, no labels. The timestamps used to be set inside the drawing, where
-  // they rendered around 7 CSS px once the viewBox was scaled to fit —
-  // unreadable, and eleven more things competing with the bands.
+  // Ticks, and the timestamps are back.
+  //
+  // They were pulled once for a good reason that no longer holds: the figure
+  // used to be scaled to fit a 1240px column, which put the viewBox at about
+  // 0.4 and rendered a label near 7 CSS px — unreadable. It is not scaled to
+  // fit any more. In the rail and on the pinned stage it renders at its own
+  // height, so the same label lands between 20 and 33 CSS px.
+  //
+  // That matters more than it sounds: 1 unit here is 1 second of recording, so
+  // these labels are the only thing that makes a position in the drawing
+  // readable as a time. Without them, travelling through 52 minutes of
+  // somebody's documentary is travelling through a barcode.
   let axis = "";
   for (let t = 0; t <= Math.floor(W / 300) * 300; t += 300) {
     const major = t % 900 === 0;
     axis += `<line x1="${t}" y1="${H.tick}" x2="${t}" y2="${H.tick + (major ? 26 : 14)}" stroke="var(--rule-firm)" stroke-width="3"/>`;
+    axis +=
+      `<text x="${t + 10}" y="${H.label}" font-size="26" letter-spacing="1"` +
+      ` fill="var(--ink-soft)" font-family="var(--font-mono)">${t / 60}:00</text>`;
   }
 
   const payload = JSON.stringify({

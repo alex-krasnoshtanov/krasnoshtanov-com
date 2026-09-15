@@ -196,15 +196,49 @@ const site = "https://krasnoshtanov.com";
 
             if (shape === "rail") {
               return (
-                <section class="project project--rail" id={p.id}>
-                  {head}
-                  <div
-                    class="rail"
-                    tabindex="0"
-                    role="region"
-                    aria-label={p.name + " — scroll sideways to move through the recording"}
-                  >
-                    {figure}
+                <section class="project project--travel" id={p.id}>
+                  {/*
+                    The runway is scroll length and nothing else; the stage is
+                    what you look at. On a wide screen the stage pins and the
+                    recording travels past a fixed mark, so moving through 52
+                    minutes is what moving down the page does.
+
+                    The heading and the legend live INSIDE the stage on purpose.
+                    Panning the drawing alone leaves you mid-recording looking
+                    at stripes with nothing on screen saying what they are or
+                    where you have got to — which is worse than not panning.
+
+                    With no pin — a phone, reduced motion, a browser without
+                    scroll-driven animation — none of the CSS below applies and
+                    this is the draggable rail it has always been.
+                  */}
+                  <div class="runway">
+                    <div class="stage">
+                      {head}
+                      <figure class="travel" data-fig={p.id}>
+                        <div
+                          class="rail"
+                          tabindex="0"
+                          role="region"
+                          aria-label={p.name + " — the recording, end to end"}
+                        >
+                          <div class="pan">
+                            <Fragment set:html={fig!.svg} />
+                          </div>
+                        </div>
+                        <div class="travel__foot shell">
+                          {fig!.legend && (
+                            <div class="chips">
+                              <Fragment set:html={fig!.legend} />
+                            </div>
+                          )}
+                          <figcaption>
+                            {p.figNote && <>{p.figNote} · </>}
+                            <a href={p.source!.href}>{p.source!.label}</a>
+                          </figcaption>
+                        </div>
+                      </figure>
+                    </div>
                   </div>
                   <p class="shell tag rail__hint" aria-hidden="true">drag sideways ⇢</p>
                   <div class="shell project__grid project__grid--wide">

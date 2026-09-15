@@ -411,21 +411,96 @@
   .rail:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
   /* 16px between a heading and the thing it introduces read as crowded; every
      visual now clears its heading by the same 48px. */
-  .project--rail .rail { margin-top: var(--gap-l); }
+  .project--rail .rail,
+  .project--travel .travel { margin-top: var(--gap-l); }
   .rail__hint { margin-top: var(--gap-xs); color: var(--ink-soft); opacity: 0.7; }
 
-  /* The timeline figure at the width it was drawn: 3099 units of a 52-minute
-     recording. Scrubbing sideways through it is what the data already is. */
-  .rail > figure {
-    width: max-content; min-width: 100%;
-    border-inline: 0; padding-inline: var(--pad-x);
+  /* --- travel: the recording goes past you -------------------------------
+     The draggable rail is the DEFAULT, not the fallback-of-last-resort: it is
+     what a phone, a keyboard, reduced motion, and any browser without
+     scroll-driven animation get, and it is the section as it has always been.
+     Everything in the @supports block further down is added on top. */
+  .travel { background: none; border: 0; padding: 0; }
+  .travel .pan { width: max-content; min-width: 100%; padding-inline: var(--pad-x); }
+  .travel .pan > svg { height: var(--tl-h); width: auto; max-width: none; }
+  .travel__foot {
+    display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-m);
+    justify-content: space-between; align-items: baseline;
   }
-  .rail > figure > svg { height: min(58svh, 34rem); width: auto; max-width: none; }
-  /* Stuck to the left edge of the scrollport, so the legend and the source
-     stay readable however far along the recording you have travelled. */
-  .rail > figure > .chips,
-  .rail > figure > figcaption {
-    position: sticky; left: var(--pad-x); width: min(62ch, 86vw);
+  .runway { --tl-h: min(58svh, 34rem); }
+
+  /*
+    The pin. Gated on all three of: the feature existing, a screen wide enough
+    that a pinned stage is not most of a phone's scrolling, and the reader not
+    having asked for less motion.
+  */
+  @supports (animation-timeline: view()) {
+    @media (min-width: 64rem) and (prefers-reduced-motion: no-preference) {
+      .runway {
+        /* Shorter than the rail's, because the stage also carries the heading
+           and the legend and all three have to fit one screen. */
+        --tl-h: min(38svh, 22rem);
+
+        /* The drawing's own proportions, which decide how far it must travel.
+           1 unit is 1 second, so this is (recording length) / (drawing
+           height) and it moves whenever the data does — scripts/check.mjs
+           recomputes it from the emitted viewBox and fails the build if this
+           number has drifted, because the symptom otherwise is a pan that
+           stops early or runs past the end, which nothing else would catch. */
+        --tl-aspect: 7.5956;
+        --tl-w: calc(var(--tl-h) * var(--tl-aspect));
+        --travel: max(0px, calc(var(--tl-w) + (2 * var(--pad-x)) - 100vw));
+
+        /* One screen to take the stage in, then roughly a pixel of travel per
+           pixel of scroll. A fixed runway height would have been simpler and
+           wrong: on a wide screen there is less left to travel, and the pan
+           would crawl while the page kept scrolling. */
+        height: calc(100svh + var(--travel));
+        view-timeline-name: --recording;
+        view-timeline-axis: block;
+      }
+
+      .stage {
+        position: sticky; top: 0; height: 100svh; overflow: hidden;
+        display: grid;
+        /* minmax(0, 1fr), not the default `auto`. An auto column sizes to its
+           widest item, and the widest item here is a 2646px track — which
+           stretched the column past the viewport and carried the centred
+           heading and legend off the right-hand edge with it. */
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        align-content: center; gap: var(--gap-m);
+        padding-block: var(--gap-m);
+      }
+      .stage .rail { min-width: 0; }
+      .stage > .travel {
+        margin-top: 0;
+        display: flex; flex-direction: column; justify-content: center;
+        gap: var(--gap-m);
+      }
+
+      /* The rail stops being a scroll container and becomes a window. */
+      .stage .rail { overflow: hidden; position: relative; }
+      .stage .pan {
+        animation: travel-recording linear both;
+        animation-timeline: --recording;
+        animation-range: contain 0% contain 100%;
+      }
+      @keyframes travel-recording {
+        from { transform: translateX(0); }
+        to   { transform: translateX(calc(-1 * var(--travel))); }
+      }
+
+      /* A mark the recording runs past. Without it the drawing slides and
+         nothing says where "now" is. */
+      .stage .rail::after {
+        content: ""; position: absolute; inset-block: 0; left: 50%;
+        width: 2px; background: var(--signal); opacity: 0.45;
+      }
+
+      /* "drag sideways" is a lie once the rail no longer scrolls. */
+      .project--travel .rail__hint { display: none; }
+    }
   }
 
   /* --- rail of cards ----------------------------------------------------- */
