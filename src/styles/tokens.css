@@ -63,6 +63,11 @@
      54ch measures about 64 characters per line here. */
   --measure: 54ch;
   --shell:   1240px;
+  /* The ceiling for the elements that deliberately escape --shell. Full-bleed
+     means "wider than the reading column", not "however wide the monitor is":
+     unbounded, the pinned stage on a 2560px screen put its figure 2000px away
+     from the readings describing it, which is further than the eye travels. */
+  --wide:    120rem;
   --pad-x:   clamp(1rem, 4vw, 3rem);
 
   /* Written by the pointer handler, read by anything that wants to react to
