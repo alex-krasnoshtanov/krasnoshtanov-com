@@ -395,6 +395,33 @@ function checkDist() {
     fail(`${figures.length} figures but only ${viewBoxes.length} viewBox attributes`);
   } else pass(`${figures.length} figures, each with an svg viewBox`);
 
+  // No architecture label wider than the box it is drawn in.
+  //
+  // SVG does not wrap or ellipsize, so an oversized <text> draws straight over
+  // its neighbour — silently, and at every render size. Plex Mono advances
+  // 0.6em per glyph, so the drawn width of each label is exactly computable
+  // from the emitted markup, and this fails the build rather than shipping a
+  // diagram that reads as a smudge. Anyone lengthening a node label finds out
+  // here.
+  const PAD = 14;
+  let widest = 0;
+  for (const [, g] of index.matchAll(/<g class="ar-node"[^>]*>([\s\S]*?)<\/g>/g)) {
+    const w = Number(g.match(/<rect[^>]*\swidth="([\d.]+)"/)?.[1]);
+    if (!w) {
+      fail("an ar-node group has no rect width");
+      continue;
+    }
+    for (const [, size, text] of g.matchAll(/<text[^>]*font-size="([\d.]+)"[^>]*>([^<]*)<\/text>/g)) {
+      const drawn = text.length * 0.6 * Number(size);
+      const room = w - PAD * 2;
+      widest = Math.max(widest, drawn / room);
+      if (drawn > room + 0.5) {
+        fail(`architecture label "${text}" draws ${drawn.toFixed(1)} units wide in a ${room.toFixed(1)}-unit box`);
+      }
+    }
+  }
+  pass(`architecture labels fit their boxes (widest fills ${(widest * 100).toFixed(0)}%)`);
+
   // The CV link is the one thing a recruiter is most likely to click.
   const redirects = read("public/_redirects");
   if (!redirects.includes("/cv.pdf")) fail("public/_redirects has no /cv.pdf rule");

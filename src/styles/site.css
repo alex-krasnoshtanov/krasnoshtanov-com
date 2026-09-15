@@ -20,7 +20,11 @@
     font-variation-settings: "opsz" 16, "wdth" 100, "wght" 400;
     -webkit-font-smoothing: antialiased;
     text-wrap: pretty;
-    overflow-x: hidden;
+    /* `clip`, not `hidden`. `hidden` makes the body a scroll container, and a
+       scroll container between the viewport and a `position: sticky` element
+       is what stops the pinned stage below from ever pinning. `clip` cuts the
+       overflow without creating one. */
+    overflow-x: clip;
   }
 
   a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 4px; }
@@ -284,5 +288,155 @@
   .progress { display: none; }
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: scroll()) { .progress { display: block; } }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   BREAKING THE COLUMN
+
+   Every section used to be 1240px wide. Measured on the built page there was
+   exactly ONE distinct section width and zero full-bleed elements across 7.9
+   screens of scrolling, which is what made a page of real measurements read
+   like a report. Nothing below adds a library: `position: sticky` and
+   `overflow-x` are the two features doing all of the work.
+
+   The shell is still the reading column. What changed is that the FIGURES no
+   longer live inside it.
+   --------------------------------------------------------------------------- */
+@layer page {
+  /* --- hero: it now owns a screen --------------------------------------- */
+  .hero {
+    min-height: 100svh;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .hero__cue { margin-top: var(--gap-l); display: flex; align-items: center; gap: var(--gap-xs); }
+  .hero__cue::before { content: ""; width: 2.5rem; height: 1px; background: var(--rule-firm); }
+
+  /* --- bleed: the figure spans the viewport, the prose does not ---------- */
+  .bleed { margin-block: var(--gap-m); }
+  /* Side borders off and the page gutter moved inside, so the figure reads as
+     a band laid across the page rather than a wide card sitting on it. */
+  .bleed > figure { border-inline: 0; padding-inline: var(--pad-x); }
+  .bleed > figure > svg { max-height: 74vh; }
+
+  /* --- pin: the stage holds while the readings go past ------------------- */
+  .pin { padding-inline: var(--pad-x); display: grid; gap: var(--gap-m); }
+
+  @media (min-width: 64rem) {
+    .pin {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+      gap: var(--gap-l); align-items: start;
+    }
+    .pin__stage {
+      position: sticky; top: 0; height: 100svh;
+      display: grid; align-content: center;
+    }
+    /* No card here. Everywhere else a figure is an object ON the page, so it
+       gets a border and a panel; on the stage the drawing IS the page for as
+       long as it holds, and a frame around it puts the box back. */
+    .pin__stage > figure {
+      max-height: 88svh;
+      background: none; border: 0; padding: 0;
+    }
+    .pin__stage > figure > svg { max-height: 68svh; }
+
+    /* The feed is what gives the sticky stage something to travel against:
+       the browser releases the pin when this column runs out, so this
+       column's height IS the length of the pin. Content alone is not
+       reliably taller than a viewport, hence the floor. */
+    .pin__feed {
+      min-height: 215svh; padding-block: 22svh 16svh;
+      display: flex; flex-direction: column; justify-content: space-around;
+      gap: var(--gap-l);
+    }
+  }
+
+  /* --- rail: travel sideways -------------------------------------------- */
+  /* A plain scroll container. Because it is the browser's own scrolling, a
+     trackpad swipe, shift+wheel, a dragged scrollbar, touch, and — thanks to
+     tabindex — the arrow keys all work, and none of it is code we maintain. */
+  .rail {
+    overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-color: var(--rule-firm) transparent;
+  }
+  .rail:focus-visible { outline: 2px solid var(--signal); outline-offset: -2px; }
+  .rail__hint { margin-top: var(--gap-xs); color: var(--ink-soft); opacity: 0.7; }
+
+  /* The timeline figure at the width it was drawn: 3099 units of a 52-minute
+     recording. Scrubbing sideways through it is what the data already is. */
+  .rail > figure {
+    width: max-content; min-width: 100%;
+    border-inline: 0; padding-inline: var(--pad-x);
+  }
+  .rail > figure > svg { height: min(58svh, 34rem); width: auto; max-width: none; }
+  /* Stuck to the left edge of the scrollport, so the legend and the source
+     stay readable however far along the recording you have travelled. */
+  .rail > figure > .chips,
+  .rail > figure > figcaption {
+    position: sticky; left: var(--pad-x); width: min(62ch, 86vw);
+  }
+
+  /* --- rail of cards ----------------------------------------------------- */
+  .rail--cards { scroll-snap-type: x proximity; }
+  .rail--cards .rail__track {
+    display: flex; align-items: stretch; gap: var(--gap-m);
+    width: max-content; padding-inline: var(--pad-x);
+  }
+  .card {
+    scroll-snap-align: start; width: min(40rem, 86vw);
+    display: flex; flex-direction: column; gap: var(--gap-s);
+    padding: var(--gap-m);
+    background: var(--ground-2); border: 1px solid var(--rule);
+  }
+  .card .project__head { border-bottom: 0; padding-bottom: 0; }
+  .card__finding {
+    font-size: var(--step-1); line-height: 1.1; letter-spacing: -0.015em;
+    font-variation-settings: "opsz" 32, "wdth" 92, "wght" 620;
+  }
+  .card .project__body { max-width: none; }
+  /* Ground, not ground-2, so the diagram separates from the card under it. */
+  .card figure { background: var(--ground); }
+  /* Pushes the link to the bottom edge, so three cards of unequal prose still
+     line their repository links up. */
+  .card__repo { margin-top: auto; }
+
+  /* Three 36rem cards plus gutters stop overflowing past about 118rem, and a
+     "drag sideways" that drags nowhere is a lie. */
+  @media (min-width: 119rem) {
+    .rail--cards + .rail__hint { display: none; }
+  }
+}
+
+@layer motion {
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      /* The hero hands the page over rather than just leaving the top. */
+      @keyframes recede { to { opacity: 0.1; transform: scale(0.97); } }
+      .hero {
+        animation: recede linear both;
+        animation-timeline: view();
+        animation-range: exit 10% exit 90%;
+      }
+
+      .card__finding {
+        animation: settle linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 32%;
+      }
+    }
+  }
+
+  /* Inside a rail the nearest scrollport is the rail itself, and a `view()`
+     timeline resolves against ITS block axis — which never scrolls. The
+     animation would sit on its `from` keyframe permanently, so `develop`
+     would leave every railed figure clipped to nothing and `rise` would
+     leave the cards invisible. Opting the rail out is the fix, not a
+     fallback. */
+  .rail figure,
+  .rail .project__body,
+  .rail .stats,
+  .rail .note,
+  .rail .card__finding {
+    animation: none;
   }
 }

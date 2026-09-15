@@ -69,17 +69,33 @@ export function render(f: Flow): string {
   const n = f.nodes.length;
   const nw = (W - gap * (n - 1)) / n;
 
+  const PAD = 14;
+
+  /**
+   * The largest size at or below `want` that still fits `text` in `box` units.
+   *
+   * SVG cannot wrap or ellipsize a <text>, so a label wider than its rectangle
+   * simply draws over the next one — which is what "one model, one lock" and
+   * "second upload queues" were doing at every render size, not just in narrow
+   * columns. IBM Plex Mono advances exactly 0.6em per glyph, so the width of a
+   * monospace string is arithmetic rather than a guess, and the size that fits
+   * can be solved for instead of eyeballed.
+   */
+  const fit = (text: string, box: number, want: number) =>
+    Math.min(want, Math.floor((box / (text.length * 0.6)) * 10) / 10);
+
   const box = (node: Node, x: number, y: number, w: number) => {
     const key = node.key;
+    const inner = w - PAD * 2;
     return (
       `<g class="ar-node"${key ? ' data-key="1"' : ""}>` +
       `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="${nodeH}" rx="2"` +
       ` fill="${key ? "var(--signal-dim)" : "var(--ground-3)"}"` +
       ` stroke="${key ? "var(--signal)" : "var(--rule-firm)"}" stroke-width="${key ? 2.5 : 1.5}"/>` +
-      `<text x="${(x + 14).toFixed(1)}" y="${y + 31}" font-size="19"` +
+      `<text x="${(x + PAD).toFixed(1)}" y="${y + 31}" font-size="${fit(node.label, inner, 19)}"` +
       ` fill="${key ? "var(--signal)" : "var(--ink)"}" font-family="var(--font-mono)">${node.label}</text>` +
       (node.sub
-        ? `<text x="${(x + 14).toFixed(1)}" y="${y + 54}" font-size="16" fill="var(--ink-soft)" font-family="var(--font-mono)">${node.sub}</text>`
+        ? `<text x="${(x + PAD).toFixed(1)}" y="${y + 54}" font-size="${fit(node.sub, inner, 16)}" fill="var(--ink-soft)" font-family="var(--font-mono)">${node.sub}</text>`
         : "") +
       `</g>`
     );
