@@ -46,60 +46,58 @@
    THE LIGHT
 
    --mx/--my are written by one pointermove handler and read here. Nothing
-   else on the page needs JavaScript to respond to the cursor: this layer
-   turns two numbers into a light source, and every effect below is a
-   consequence of it rather than a separate script.
+   else needs JavaScript to react to the pointer: this layer turns two numbers
+   into a light source, and the effects below are consequences of it.
    --------------------------------------------------------------------------- */
 @layer light {
+  body::before,
+  body::after { content: ""; position: fixed; z-index: 0; pointer-events: none; }
+
   body::before {
-    content: "";
-    position: fixed;
     inset: -20vmax;
-    z-index: 0;
-    pointer-events: none;
     background: radial-gradient(
-      38vmax 38vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
-      oklch(0.80 0.15 85 / 0.13),
-      oklch(0.80 0.15 85 / 0.045) 42%,
-      transparent 68%
+      34vmax 34vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      oklch(0.80 0.15 85 / 0.115), oklch(0.80 0.15 85 / 0.04) 45%, transparent 70%
     );
-    /* No transition on the gradient itself — it tracks the pointer directly,
-       and easing a light source makes it feel laggy rather than smooth. */
   }
 
-  /* A hairline grid, lit only where the light falls. It is the drawing-sheet
-     rule from the CV work, except it is now a thing the light reveals. */
+  /* A hairline grid the light uncovers, rather than a grid that is just there. */
   body::after {
-    content: "";
-    position: fixed;
     inset: 0;
-    z-index: 0;
-    pointer-events: none;
     background-image:
-      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 88px),
-      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 88px);
-    opacity: 0.5;
-    -webkit-mask-image: radial-gradient(
-      30vmax 30vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
-      #000 0%, transparent 72%
-    );
-    mask-image: radial-gradient(
-      30vmax 30vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
-      #000 0%, transparent 72%
-    );
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 96px),
+      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 96px);
+    opacity: 0.45;
+    -webkit-mask-image: radial-gradient(26vmax 26vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%), #000, transparent 72%);
+    mask-image: radial-gradient(26vmax 26vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%), #000, transparent 72%);
   }
 
-  /* Everything real sits above the light. */
   body > * { position: relative; z-index: 1; }
+
+  /* The cursor carries its own label. It is `position: fixed` and outside the
+     document flow on purpose: the readings used to sit in a block under each
+     figure, and text arriving there reflowed the section every time the
+     pointer moved. Nothing here can move anything else. */
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 6;
+    translate: calc(var(--mx) * 100vw + 18px) calc(var(--my) * 100vh - 8px);
+    padding: 0.3rem 0.55rem;
+    background: var(--signal); color: var(--ground);
+    font-family: var(--font-mono); font-size: var(--step--2);
+    letter-spacing: 0.04em; white-space: nowrap;
+    pointer-events: none; opacity: 0;
+    transition: opacity 140ms ease;
+    max-width: 44vw; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cursor[data-on] { opacity: 1; }
+  @media (hover: none) { .cursor { display: none; } }
 }
 
 @layer page {
-  /* --- masthead ----------------------------------------------------- */
   .bar {
     display: flex; flex-wrap: wrap; gap: var(--gap-xs);
     justify-content: space-between; align-items: center;
-    padding-block: 1rem;
-    border-bottom: 1px solid var(--rule);
+    padding-block: 1rem; border-bottom: 1px solid var(--rule);
   }
 
   /* --- hero --------------------------------------------------------- */
@@ -109,26 +107,20 @@
     letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
   }
   .hero__claim {
-    font-size: var(--step-4);
-    line-height: 0.96;
-    letter-spacing: -0.03em;
-    max-width: 21ch;
-    margin-block: var(--gap-m) var(--gap-m);
-    /* opsz at the top of its range is what stops a 7rem setting looking like
-       body copy scaled up: the face tightens its spacing and thins its
-       joins at display size. */
+    font-size: var(--step-4); line-height: 0.95; letter-spacing: -0.03em;
+    margin-block: var(--gap-m);
     font-variation-settings: "opsz" 96, "wdth" 100, "wght" 700;
   }
-  /* The lit word. Its weight and width track the pointer, so the headline
-     is never quite the same shape twice — and it is the one element on the
-     page that does this. */
+  /* Each line is its own block. That is what makes the axes below safe to
+     animate: a weight or width change inside a wrapping paragraph rewraps it
+     and the whole page jumps, which is exactly the flicker this replaces. */
+  .hero__claim .line { display: block; }
   .hero__claim em {
-    font-style: normal;
-    color: var(--signal);
+    font-style: normal; color: var(--signal);
     font-variation-settings:
       "opsz" 96,
-      "wdth" calc(75 + var(--mx) * 25),
-      "wght" calc(420 + (1 - var(--my)) * 380);
+      "wdth" calc(78 + var(--mx) * 22),
+      "wght" calc(430 + (1 - var(--my)) * 370);
   }
   .hero__lede { max-width: var(--measure); color: var(--ink-soft); }
 
@@ -140,36 +132,33 @@
     display: flex; align-items: center; justify-content: space-between;
     min-height: 48px; padding-inline: 0.85rem;
     border: 1px solid var(--rule-firm);
-    color: var(--ink); text-decoration: none;
+    background: var(--ground-2); color: var(--ink); text-decoration: none;
     font-family: var(--font-mono); font-size: var(--step--1);
-    background: transparent;
-    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+    transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease;
   }
-  .hero__links a::after { content: "\2197"; color: var(--ink-soft); }
-  .hero__links a:hover {
-    background: var(--signal-dim); border-color: var(--signal); color: var(--signal);
+  .hero__links a::after { content: "\2197"; color: var(--ink-soft); transition: color 160ms ease; }
+  /* Filled, with the ground colour for text. The earlier hover put the accent
+     on a 16%-accent wash, which is accent-on-accent and read as washed out
+     rather than as a state change. */
+  .hero__links a:hover,
+  .hero__links a:focus-visible {
+    background: var(--signal); border-color: var(--signal); color: var(--ground);
   }
-  .hero__links a:hover::after { color: var(--signal); }
-  @media (min-width: 46rem) {
-    .hero__links { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  }
+  .hero__links a:hover::after,
+  .hero__links a:focus-visible::after { color: var(--ground); }
+  @media (min-width: 46rem) { .hero__links { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
   /* --- project ------------------------------------------------------ */
-  .project { padding-block: clamp(3rem, 8vw, 6rem); border-top: 1px solid var(--rule); }
+  .project { padding-block: clamp(3rem, 8vw, 6rem); }
   .project__head {
     display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-m);
     justify-content: space-between; align-items: baseline;
+    padding-bottom: 0.8rem; border-bottom: 1px solid var(--rule);
   }
-  .project__index {
-    font-family: var(--font-mono); font-size: var(--step--2);
-    color: var(--signal); letter-spacing: 0.1em;
-  }
+  .project__index { font-family: var(--font-mono); font-size: var(--step--2); color: var(--signal); letter-spacing: 0.1em; }
   .project__finding {
-    font-size: var(--step-2);
-    line-height: 1.06;
-    letter-spacing: -0.022em;
-    max-width: 30ch;
-    margin-block: var(--gap-m) var(--gap-s);
+    font-size: var(--step-2); line-height: 1.05; letter-spacing: -0.022em;
+    max-width: 30ch; margin-block: var(--gap-m) var(--gap-s);
     font-variation-settings: "opsz" 48, "wdth" 92, "wght" 620;
   }
   .project__body { max-width: var(--measure); color: var(--ink-soft); }
@@ -177,58 +166,38 @@
 
   .project__grid { display: grid; gap: var(--gap-m); margin-top: var(--gap-m); }
   @media (min-width: 60rem) {
-    .project__grid { grid-template-columns: minmax(0, 23rem) minmax(0, 1fr); gap: var(--gap-l); align-items: start; }
-    .project__grid--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
+    .project__grid { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: var(--gap-l); align-items: start; }
+    .project__grid--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); }
   }
 
   /* --- stats -------------------------------------------------------- */
   .stats > div {
     display: flex; justify-content: space-between; align-items: baseline;
-    gap: var(--gap-s); padding-block: 0.6rem;
-    border-bottom: 1px solid var(--rule);
+    gap: var(--gap-s); padding-block: 0.6rem; border-bottom: 1px solid var(--rule);
   }
   .stats dt { font-size: var(--step--1); color: var(--ink-soft); }
-  .stats dd {
-    margin: 0; font-family: var(--font-mono); font-weight: 500;
-    font-variant-numeric: tabular-nums;
-  }
+  .stats dd { margin: 0; font-family: var(--font-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
   .stats dd[data-signal] { color: var(--signal); }
   .stats dd[data-warn]   { color: var(--warn); }
 
   /* --- figures ------------------------------------------------------ */
   figure {
-    display: flex; flex-direction: column; gap: var(--gap-xs);
-    background: var(--ground-2);
-    border: 1px solid var(--rule);
-    padding: var(--gap-s);
+    display: flex; flex-direction: column; gap: var(--gap-s);
+    background: var(--ground-2); border: 1px solid var(--rule); padding: var(--gap-s);
   }
   figure svg { width: 100%; height: auto; }
   figcaption { font-size: var(--step--2); font-family: var(--font-mono); color: var(--ink-soft); line-height: 1.6; }
-
-  /* The live readout. It replaces a static caption while the pointer is over
-     a figure, so the figure answers questions instead of just being looked
-     at. Reserved height, so nothing reflows when it fills. */
-  .readout {
-    font-family: var(--font-mono); font-size: var(--step--2);
-    color: var(--signal); min-height: 1.6em; letter-spacing: 0.04em;
-  }
-  .readout:empty::before { content: "hover the figure to read values"; color: var(--ink-soft); opacity: 0.7; }
+  .sh, .tl, .np { cursor: crosshair; }
 
   .chips { display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-s); }
-  .chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft);
-  }
-  /* Not decoration: Neutral is the palest fill and the most common answer in
-     the recording, and without an edge its 12px swatch disappears. */
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft); }
   .chip i { width: 12px; height: 12px; border: 1px solid var(--rule-firm); }
 
   .note { max-width: 58ch; line-height: 1.75; margin-top: var(--gap-s); }
 
   .caveat {
     margin-top: var(--gap-s); padding: var(--gap-s);
-    border-left: 3px solid var(--warn); background: var(--warn-dim);
-    max-width: 58ch;
+    border-left: 3px solid var(--warn); background: var(--warn-dim); max-width: 58ch;
   }
   .caveat cite {
     display: block; margin-top: 0.5rem; font-style: normal;
@@ -237,24 +206,29 @@
   }
 
   /* --- one trunk, three targets ------------------------------------- */
-  .topo { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: var(--gap-s); }
+  .topo { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
   .topo li {
-    background: var(--ground-2); padding: 0.65rem 0.8rem;
+    background: var(--ground-3); padding: 0.65rem 0.8rem;
     display: flex; flex-wrap: wrap; gap: 0.15rem var(--gap-s);
     justify-content: space-between; align-items: baseline;
   }
   .topo b { font-size: var(--step--1); font-variation-settings: "wght" 620; }
   .topo span { font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft); }
-  .topo__trunk { background: var(--signal-dim) !important; }
+  .topo__trunk { background: var(--signal) !important; color: var(--ground); }
+  .topo__trunk span { color: var(--ground); opacity: 0.75; }
   @media (min-width: 46rem) {
     .topo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .topo__trunk { grid-column: 1 / -1; }
   }
 
-  /* --- short entries ------------------------------------------------ */
-  .brief { padding-block: var(--gap-m); border-top: 1px solid var(--rule); }
-  .brief h2 { font-size: var(--step-1); font-variation-settings: "opsz" 32, "wdth" 94, "wght" 620; }
-  .brief p { max-width: var(--measure); color: var(--ink-soft); margin-top: var(--gap-xs); }
+  /* --- architecture diagrams ---------------------------------------- */
+  .ar { cursor: default; }
+  .ar-node rect { transition: opacity 160ms ease; }
+  /* Pointing at one node quiets the rest, so the diagram answers "which part
+     are you looking at" without a tooltip. */
+  .ar:hover .ar-node:not(:hover) rect { opacity: 0.4; }
+  .ar:hover .ar-node:not(:hover) text { opacity: 0.45; }
+  .ar-node text { transition: opacity 160ms ease; }
 
   footer { padding-block: var(--gap-m) var(--gap-xl); border-top: 1px solid var(--rule); color: var(--ink-soft); }
 }
@@ -262,84 +236,51 @@
 /* ---------------------------------------------------------------------------
    MOTION
 
-   Scroll reaction is done with native CSS scroll-driven animations, not a
-   scroll library and not a wheel handler. That means the page never takes
-   the scrollbar away from the reader, costs no JavaScript, and degrades to
-   "everything is simply visible" wherever `animation-timeline` is missing.
+   Scroll reaction is native CSS scroll-driven animation, not a scroll library
+   and not a wheel handler: the scrollbar stays the reader's, it costs no
+   JavaScript, and it degrades to "everything is simply visible".
+
+   Nothing in here animates a property that can change an element's SIZE.
+   Opacity, transform, clip-path and stroke-dashoffset cannot reflow the page;
+   width, letter-spacing and font-size can, and animating those was what made
+   the section boundaries twitch as you scrolled.
    --------------------------------------------------------------------------- */
 @layer motion {
-  /* Pointer-driven dimming. Looking at one project quiets the others, which
-     is the cursor "highlighting an area" without a follower element. */
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    #work:has(.project:hover) .project:not(:hover) { opacity: 0.42; }
+    #work:has(.project:hover) .project:not(:hover) { opacity: 0.45; }
     .project { transition: opacity 260ms ease; }
   }
 
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: view()) {
-      @keyframes rise {
-        from { opacity: 0; transform: translateY(2.2rem); }
-        to   { opacity: 1; transform: none; }
-      }
-      /* The findings arrive narrow and light and settle into their real
-         shape as the section enters. The axes are the animation — no
-         fade-and-slide, which is the tell everyone uses. */
-      @keyframes settle {
-        from { font-variation-settings: "opsz" 48, "wdth" 75, "wght" 260; opacity: 0.55; letter-spacing: 0.02em; }
-        to   { font-variation-settings: "opsz" 48, "wdth" 92, "wght" 620; opacity: 1; letter-spacing: -0.022em; }
-      }
-      /* A figure is uncovered rather than faded in: the wipe reads as a
-         print coming up, which is the metaphor the whole palette is built on. */
-      @keyframes develop {
-        from { clip-path: inset(0 0 100% 0); }
-        to   { clip-path: inset(0 0 0 0); }
-      }
-      @keyframes rule-draw {
-        from { transform: scaleX(0); }
-        to   { transform: scaleX(1); }
-      }
-
-      .project__finding {
-        animation: settle linear both;
-        animation-timeline: view();
-        animation-range: entry 8% cover 34%;
-      }
-      figure {
-        animation: develop linear both;
-        animation-timeline: view();
-        animation-range: entry 12% cover 40%;
-      }
-      .project__body, .stats, .note, .brief {
-        animation: rise linear both;
-        animation-timeline: view();
-        animation-range: entry 4% cover 30%;
-      }
-      .project { border-top-color: transparent; }
-      .project::before {
-        content: "";
-        display: block;
-        height: 1px;
-        background: var(--signal);
-        transform-origin: left;
-        margin-bottom: clamp(3rem, 8vw, 6rem);
-        animation: rule-draw linear both;
-        animation-timeline: view();
-        animation-range: entry 0% entry 60%;
-      }
-
-      /* The reading-progress bar is the scroll position, not an ornament. */
+      @keyframes rise { from { opacity: 0; transform: translateY(1.6rem); } to { opacity: 1; transform: none; } }
+      /* Weight only. Width was in here too, and a width change on a heading
+         rewraps it, which moves everything under it. */
+      @keyframes settle { from { font-variation-settings: "opsz" 48, "wdth" 92, "wght" 250; opacity: 0.5; } to { font-variation-settings: "opsz" 48, "wdth" 92, "wght" 620; opacity: 1; } }
+      @keyframes develop { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+      @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+      @keyframes pop { from { opacity: 0; transform: scale(0.2); } to { opacity: 1; transform: none; } }
       @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+      .project__finding { animation: settle linear both; animation-timeline: view(); animation-range: entry 8% cover 32%; }
+      figure { animation: develop linear both; animation-timeline: view(); animation-range: entry 12% cover 38%; }
+      .project__body, .stats, .note, .brief { animation: rise linear both; animation-timeline: view(); animation-range: entry 4% cover 28%; }
+
+      /* The scroll IS the pen. `pathLength="1"` on the path is what lets the
+         dash be a fraction, so no JavaScript has to measure it. */
+      .pf-line { stroke-dasharray: 1; animation: draw linear both; animation-timeline: view(); animation-range: entry 18% cover 62%; }
+      .pf-zero, .pf-best { transform-box: fill-box; transform-origin: center; animation: pop linear both; animation-timeline: view(); animation-range: cover 40% cover 70%; }
+
       .progress {
-        position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 5;
+        position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 7;
         background: var(--signal); transform-origin: left;
-        animation: progress linear both;
-        animation-timeline: scroll(root block);
+        animation: progress linear both; animation-timeline: scroll(root block);
       }
     }
   }
 
-  /* Without scroll-driven animation support, or under reduced motion, there
-     is no progress bar to show a position nothing is animating. */
+  /* Without the feature, or under reduced motion, the curve is simply drawn
+     and there is no progress bar reporting a scroll nothing responds to. */
   .progress { display: none; }
   @media (prefers-reduced-motion: no-preference) {
     @supports (animation-timeline: scroll()) { .progress { display: block; } }

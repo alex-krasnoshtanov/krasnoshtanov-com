@@ -360,12 +360,27 @@ function checkDist() {
   } else pass(`all ${claims.claims.length} claim strings present verbatim`);
 
   // Numbers and names that must never reappear.
+  //
+  // Matched against what a READER encounters — visible text plus accessible
+  // names — and not against raw markup. Scanning the markup flagged an SVG
+  // `opacity="0.88"` in a bar chart as the forbidden NPEC F1: a guard that
+  // fires on something it does not mean is worse than no guard, because the
+  // next real hit gets waved through as another false positive.
+  const visible = index
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&[a-z]+;|&#\d+;/gi, " ");
+  const accessibleNames = [...index.matchAll(/(?:aria-label|title|alt)="([^"]*)"/gi)]
+    .map((m) => m[1])
+    .join(" ");
+  const readable = visible + " " + accessibleNames;
+
   for (const d of claims.denied) {
     const re = new RegExp(d.pattern, "i");
-    const hit = index.match(re);
-    if (hit) fail(`denied pattern /${d.pattern}/ matched "${hit[0]}" — ${d.why}`);
+    const hit = readable.match(re);
+    if (hit) fail(`denied pattern /${d.pattern}/ matched "${hit[0]}" in readable text — ${d.why}`);
   }
-  pass(`${claims.denied.length} denied patterns, none present`);
+  pass(`${claims.denied.length} denied patterns, none in readable text`);
 
   // Placeholder leakage, in the spirit of Family-Website's check-dist.
   for (const needle of ["undefined", "[object Object]", "localhost", "NaN", "TODO"]) {

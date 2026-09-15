@@ -38,6 +38,8 @@ export interface Project {
   visual?: string;
   /** Shown under the figure: where the drawn numbers came from. */
   source?: { label: string; href: string };
+  /** One fact the drawing needs but should not carry as a label. */
+  figNote?: string;
   note?: string;
 }
 
@@ -45,6 +47,9 @@ export interface Brief {
   id: string;
   name: string;
   meta: string;
+  /** The one line worth reading. These sections get an architecture diagram
+   *  rather than a measurement, so the finding is qualitative. */
+  finding: string;
   body: string;
   repo?: string;
 }
@@ -67,9 +72,10 @@ export const projects: Project[] = [
       { label: "predicted left of frame / right of frame", value: "229 / 185" },
       { label: "direction: declines to answer", value: "407 / 414", tone: "warn" },
     ],
-    note: "Every subject is fully outside the 720×480 frame, never clipped by its edge, so which side they are on has no ambiguous middle case — and one mean box for all 1,692 training frames scores 0.0000, because the boxes sit on both sides. Splitting by side is what creates a floor at all, and it is the same idea the model needed.",
+    note: "One mean box for all 1,692 training frames scores 0.0000, because the boxes sit on both sides. Splitting by side is what creates a floor at all — the same idea the model itself needed.",
     repo: `${GH}/Detection-by-Shadow`,
     visual: "shadow",
+    figNote: "720×480 frame · the light and the silhouette are a diagram; the boxes are real output",
     source: {
       label: "results/submission_v5_ensemble.csv",
       href: `${GH}/Detection-by-Shadow/blob/main/results/submission_v5_ensemble.csv`,
@@ -152,21 +158,24 @@ export const briefs: Brief[] = [
     id: "marbet",
     name: "MARBET event assistant",
     meta: "Two-person sprint · Apr – May 2025 · in production for the client",
-    body: "A self-hosted retrieval assistant answering questions about a corporate event from the client’s own documents and nothing else — Llama 3.3 70B through Ollama, LangChain, FAISS, a Gradio front end, multi-format ingestion with semantic chunking. Two of us built it in two weeks and the client put it into production. There is no data in the repository, deliberately: the event material was theirs, not mine to publish.",
+    finding: "Two people, two weeks, and a client who put it into production.",
+    body: "A self-hosted retrieval assistant answering questions about a corporate event from the client’s own documents and nothing else. There is no data in the repository, deliberately — the event material was theirs, not mine to publish.",
     repo: `${GH}/MARBET-Chatbot`,
   },
   {
     id: "uk-transcribe",
     name: "UK-Transcribe",
     meta: "Personal project · Jul 2026 · running on a GPU rack",
-    body: "Ukrainian lecture transcription I host myself, so the audio never leaves the machine and there is no per-minute cloud bill. faster-whisper behind FastAPI in a CUDA 12 image, picking whichever GPU has the most free memory at startup. One model instance sits behind a lock, so a second upload queues instead of two requests thrashing the same VRAM, and the progress bar is driven by the decoder’s real position in the audio rather than by a timer pretending to be one.",
+    finding: "One GPU, one lock — the second upload waits instead of crashing.",
+    body: "Ukrainian lecture transcription I host myself, so the audio never leaves the machine and there is no per-minute cloud bill. It picks whichever GPU has the most free memory at startup.",
     repo: `${GH}/UK-Transcribe`,
   },
   {
     id: "dsl",
     name: "Dutch Sign Language trainer",
     meta: "Solo rebuild of a group project · May – Sep 2026",
-    body: "A real-time NGT fingerspelling trainer, rebuilt alone from a three-person university project with no shared commit history. MediaPipe hand landmarks feed a small residual network for the 24 letters that hold still; J and Z need movement, so they get a sequence model over a window of frames instead. FastAPI over WebSockets behind a typed Next.js front end, bilingual, containerised, tested in CI. The accuracy figures I recorded at the time are not backed by anything committed, so they are not quoted here.",
+    finding: "Two letters in the alphabet are movements, not shapes.",
+    body: "A real-time NGT fingerspelling trainer, rebuilt alone from a three-person university project with no shared commit history. The accuracy figures I recorded at the time are not backed by anything committed, so they are not quoted here.",
     repo: `${GH}/DSL-Learning`,
   },
 ];

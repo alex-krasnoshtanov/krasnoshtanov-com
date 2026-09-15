@@ -14,28 +14,18 @@ import * as shadow from "../visuals/shadow";
 import * as timeline from "../visuals/timeline";
 import * as platform from "../visuals/platform";
 import * as npec from "../visuals/npec";
+import * as arch from "../visuals/arch";
 
-// Every figure is rendered HERE, at build time, into the page. That is what
-// makes it work with JavaScript off and what removes the whole class of "the
-// script failed and the visitor sees an empty box" bugs: there is no empty box
-// to show, because the finished drawing is already in the HTML. The pointer
-// handlers below only move what is already there.
-const figures: Record<string, { svg: string; extra?: string; legend?: string; hint?: string }> = {
-  shadow: {
-    svg: shadow.render(shadowData as any),
-    hint: "move the pointer to move the light",
-  },
-  timeline: {
-    svg: timeline.render(timelineData as any),
-    legend: timeline.legend(timelineData as any),
-    hint: "drag across to read both engines at any moment",
-  },
+// Every figure is rendered HERE, at build time. That is what makes the page
+// work with JavaScript off, and it removes the whole class of "the script
+// failed and the visitor sees an empty box" bugs: there is no empty box,
+// because the finished drawing is already in the HTML. The pointer handlers
+// only move what is already there.
+const figures: Record<string, { svg: string; extra?: string; legend?: string }> = {
+  shadow: { svg: shadow.render(shadowData as any) },
+  timeline: { svg: timeline.render(timelineData as any), legend: timeline.legend() },
   platform: { svg: platform.render(platformData as any), extra: platform.topology() },
-  npec: {
-    svg: npec.render(npecData as any),
-    extra: npec.rlStrip(npecData as any),
-    hint: "hover a cell for its full row",
-  },
+  npec: { svg: npec.render(npecData as any), extra: npec.rlStrip(npecData as any) },
 };
 
 const title = "Oleksii Krasnoshtanov";
@@ -61,9 +51,9 @@ const site = "https://krasnoshtanov.com";
     <meta property="profile:last_name" content="Krasnoshtanov" />
     {/*
       No og:image yet, deliberately. A link card with a 404'd image reads
-      worse than one with no image at all. When it is made: put it at
-      public/og.png and declare og:image — scripts/check.mjs then enforces
-      that the file exists at the declared dimensions.
+      worse than one with no image. When it is made: put it at public/og.png
+      and declare og:image — scripts/check.mjs then enforces that the file
+      exists at the declared dimensions.
     */}
     <meta name="twitter:card" content="summary" />
     <meta name="theme-color" content="#091018" />
@@ -74,6 +64,7 @@ const site = "https://krasnoshtanov.com";
 
   <body>
     <div class="progress" aria-hidden="true"></div>
+    <div class="cursor" aria-hidden="true"></div>
     <a class="sr-only" href="#work">Skip to the projects</a>
 
     <header class="shell bar">
@@ -85,19 +76,19 @@ const site = "https://krasnoshtanov.com";
       <section class="shell hero">
         <h1 class="hero__name">Oleksii Krasnoshtanov</h1>
         <p class="hero__claim">
-          I build computer&#8209;vision and NLP systems, then <em>keep them running</em>.
+          <span class="line">I build computer&#8209;vision</span>
+          <span class="line">and NLP systems, then</span>
+          <span class="line"><em>keep them running</em>.</span>
         </p>
         <p class="hero__lede">
           Third&#8209;year Applied Data Science &amp; AI at Breda University of Applied Sciences.
-          Four of the projects below shipped to someone other than a grader — among them a
-          retrieval assistant a client put into production and a transcription service I host
-          myself.
+          Four of the projects below shipped to someone other than a grader.
         </p>
         <nav class="hero__links" aria-label="Elsewhere">
-          <a href="/cv.pdf">Résumé</a>
-          <a href="https://github.com/alex-krasnoshtanov">GitHub</a>
-          <a href="https://linkedin.com/in/oleksii-krasnoshtanov/">LinkedIn</a>
-          <a href="mailto:oleksiikrasnoshtanov@gmail.com">Email</a>
+          <a href="/cv.pdf" data-cursor="one page, always current">Résumé</a>
+          <a href="https://github.com/alex-krasnoshtanov" data-cursor="the repositories behind this page">GitHub</a>
+          <a href="https://linkedin.com/in/oleksii-krasnoshtanov/" data-cursor="oleksii-krasnoshtanov">LinkedIn</a>
+          <a href="mailto:oleksiikrasnoshtanov@gmail.com" data-cursor="oleksiikrasnoshtanov@gmail.com">Email</a>
         </nav>
         <p class="tag">Tilburg, Netherlands · 9.1/10 · BUas Scholarship · EN / UK / RU</p>
       </section>
@@ -131,10 +122,8 @@ const site = "https://krasnoshtanov.com";
                     <Fragment set:html={fig.legend} />
                   </div>
                 )}
-                {fig.hint && <p class="readout" data-readout={p.id}></p>}
                 <figcaption>
-                  {p.id === "shadow" &&
-                    "Boxes and coordinates are real model output. The light, the figure and the cast shadow are a diagram of the setup — the source frames are not redistributed. "}
+                  {p.figNote && <>{p.figNote} · </>}
                   <a href={p.source!.href}>{p.source!.label}</a>
                 </figcaption>
               </figure>
@@ -154,12 +143,13 @@ const site = "https://krasnoshtanov.com";
             return (
               <section class="shell project" id={p.id}>
                 <div class="project__head">
-                  <span class="project__index">{String(i + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span>
+                  <span class="project__index">
+                    {String(i + 1).padStart(2, "0")} — {p.name}
+                  </span>
                   <span class="tag">{p.meta}</span>
                 </div>
 
                 <h2 class="project__finding">{p.finding}</h2>
-                <p class="tag">{p.name}</p>
 
                 <div class={"project__grid" + (wide ? " project__grid--wide" : "")}>
                   {wide ? (
@@ -178,46 +168,65 @@ const site = "https://krasnoshtanov.com";
             );
           })
         }
-      </div>
 
-      <section class="shell project">
-        <div class="project__head">
-          <span class="project__index">Also</span>
-          <span class="tag">no figure, on purpose — there is no data to draw</span>
-        </div>
         {
-          briefs.map((b) => (
-            <article class="brief">
-              <h2>{b.name}</h2>
-              <p class="tag">{b.meta}</p>
-              <p>{b.body}</p>
-              {b.repo && (
-                <p class="tag">
-                  <a href={b.repo}>Repository</a>
-                </p>
-              )}
-            </article>
-          ))
+          briefs.map((b, i) => {
+            const flow = arch.flows[b.id];
+            return (
+              <section class="shell project" id={b.id}>
+                <div class="project__head">
+                  <span class="project__index">
+                    {String(projects.length + i + 1).padStart(2, "0")} — {b.name}
+                  </span>
+                  <span class="tag">{b.meta}</span>
+                </div>
+
+                <h2 class="project__finding">{b.finding}</h2>
+
+                <div class="project__grid">
+                  <div>
+                    <p class="project__body">{b.body}</p>
+                    {b.repo && (
+                      <p class="tag">
+                        <a href={b.repo}>Repository</a>
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    {flow && (
+                      <figure data-fig={b.id}>
+                        <Fragment set:html={arch.render(flow)} />
+                        <figcaption>{flow.note}</figcaption>
+                      </figure>
+                    )}
+                  </div>
+                </div>
+              </section>
+            );
+          })
         }
-      </section>
+      </div>
     </main>
 
     <footer class="shell">
       <p class="tag" style="max-width: 62ch; line-height: 1.8">
-        Every figure here is either recomputed from committed data at build time, or recorded
-        in a named file and linked to it. Where a number I once wrote down turned out to have
-        no source, it is gone rather than hedged. The build refuses to publish if any of that
-        stops being true.
+        Every number here is either recomputed from committed data at build time, or recorded
+        in a named file and linked to it. Where a figure I once wrote down turned out to have
+        no source, it is gone rather than hedged. The build refuses to publish if that stops
+        being true.
       </p>
     </footer>
 
     <script>
       // ONE pointer handler for the whole page. It writes two numbers to the
-      // root and stops; the light, the revealed grid and the headline's
-      // weight are all CSS reading those numbers. Doing it in CSS rather than
-      // per-element JS is what keeps this cheap enough to run on every frame.
+      // root and stops; the light, the grid it uncovers, the headline's weight
+      // and the cursor label's position are all CSS reading those numbers.
       const root = document.documentElement;
-      if (matchMedia("(hover: hover)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const cursor = document.querySelector<HTMLElement>(".cursor");
+      const fine = matchMedia("(hover: hover)").matches;
+      const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (fine && !still) {
         let x = 0.34;
         let y = 0.3;
         let queued = false;
@@ -238,10 +247,51 @@ const site = "https://krasnoshtanov.com";
         );
       }
 
-      // Figures hydrate only when scrolled to, and each one's module is its
-      // own chunk. If any of this fails the drawing is still there — nothing
-      // was removed to make room for it.
-      const loaders = {
+      // The label rides the cursor instead of living in the layout, so text
+      // arriving can never reflow a section. `hold` is what a figure sets
+      // while the pointer is inside it; otherwise the nearest data-cursor
+      // ancestor supplies the text.
+      let hold: string | null = null;
+      const show = (text: string | null) => {
+        if (!cursor || !fine) return;
+        if (text) {
+          cursor.textContent = text;
+          cursor.setAttribute("data-on", "");
+        } else {
+          cursor.removeAttribute("data-on");
+        }
+      };
+      const label = (text: string) => {
+        hold = text;
+        show(text);
+      };
+
+      if (fine) {
+        addEventListener(
+          "pointerover",
+          (e) => {
+            const hit = (e.target as Element)?.closest?.("[data-cursor]");
+            if (hit) show(hit.getAttribute("data-cursor"));
+            else if (!hold) show(null);
+          },
+          { passive: true },
+        );
+        addEventListener(
+          "pointerout",
+          (e) => {
+            const hit = (e.target as Element)?.closest?.("[data-cursor]");
+            if (!hit) return;
+            hold = null;
+            show(null);
+          },
+          { passive: true },
+        );
+      }
+
+      // Figures hydrate only when scrolled to, each module its own chunk. If
+      // any of this fails the drawing is still there — nothing was removed to
+      // make room for it.
+      const loaders: Record<string, () => Promise<any>> = {
         shadow: () => import("../visuals/shadow"),
         timeline: () => import("../visuals/timeline"),
         npec: () => import("../visuals/npec"),
@@ -251,14 +301,13 @@ const site = "https://krasnoshtanov.com";
         const host = document.querySelector(`[data-fig="${id}"]`);
         const svg = host?.querySelector("svg");
         if (!svg) continue;
-        const readout = host!.querySelector(`[data-readout="${id}"]`);
         new IntersectionObserver(
           (entries, obs) => {
             for (const entry of entries) {
               if (!entry.isIntersecting) continue;
               obs.disconnect();
               load()
-                .then((m) => m.attach(svg as any, readout as any))
+                .then((m) => m.attach(svg as any, label))
                 .catch(() => {
                   /* The static drawing stands. Nothing to recover. */
                 });

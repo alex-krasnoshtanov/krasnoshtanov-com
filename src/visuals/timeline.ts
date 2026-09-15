@@ -15,21 +15,7 @@ export interface TimelineData {
   scenes_whisper: number[][];
 }
 
-/** One lightness and one chroma across all seven, hue apart, so no single
- *  emotion shouts. Neutral is the palest deliberately: it is by far the most
- *  common answer here, and a loud fill for it would read as the recording
- *  being mostly *something*. */
-const FILL = [
-  "oklch(0.66 0.075 25)",
-  "oklch(0.66 0.075 130)",
-  "oklch(0.66 0.075 310)",
-  "oklch(0.66 0.075 70)",
-  "oklch(0.82 0.006 250)",
-  "oklch(0.66 0.075 255)",
-  "oklch(0.66 0.075 195)",
-];
-
-const H = { trackA: 0, band: 140, trackB: 230, tick: 362, label: 422, total: 450 };
+const H = { trackA: 0, band: 124, trackB: 202, tick: 330, total: 372 };
 
 /** Which emotion a track answers at each whole second. A scene spanning
  *  [start, end) covers every integer t with ceil(start) <= t < end. This
@@ -43,17 +29,32 @@ function atSecond(track: number[][]): Map<number, number> {
 
 export function render(d: TimelineData): string {
   const W = Math.ceil(Math.max(d.duration_s, ...d.scenes.map((s) => s[1]), ...d.scenes_whisper.map((s) => s[1])));
-  const n = (v: number) => (Math.round(v * 10) / 10).toString();
 
-  const bands = (track: number[][], y: number) =>
-    track
-      .map((s) => `<rect x="${n(s[0])}" y="${y}" width="${n(Math.max(s[1] - s[0], 2))}" height="120" fill="${FILL[s[2]]}"/>`)
-      .join("");
-
-  // Merge the disagreeing seconds into runs, so this is tens of rects rather
-  // than one per second.
   const a = atSecond(d.scenes);
   const b = atSecond(d.scenes_whisper);
+
+  // Bands are NOT coloured by emotion any more. Seven hues plus a seven-entry
+  // legend asked a reader to learn a key before the figure said anything, and
+  // the figure's point is not which emotion it picked — it is that changing
+  // the transcriber changes the answer. So the tracks carry coverage and the
+  // strip between them carries disagreement, which is the sentence above it,
+  // drawn. Which emotions, specifically, is what the cursor is for.
+  const band = (track: number[][], y: number) =>
+    track
+      .map((s) => {
+        const differs = (() => {
+          for (let t = Math.ceil(s[0]); t < s[1]; t++) {
+            if (a.has(t) && b.has(t) && a.get(t) !== b.get(t)) return true;
+          }
+          return false;
+        })();
+        const w = Math.max(s[1] - s[0], 2);
+        return `<rect x="${s[0].toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="110" fill="${
+          differs ? "var(--warn)" : "var(--ink-soft)"
+        }" opacity="${differs ? 0.85 : 0.3}"/>`;
+      })
+      .join("");
+
   const runs: [number, number][] = [];
   let open: number | null = null;
   for (let t = 0; t <= W; t++) {
@@ -67,21 +68,18 @@ export function render(d: TimelineData): string {
   if (open !== null) runs.push([open, W]);
 
   const hatch = runs
-    .map(([s, e]) => `<rect x="${s}" y="${H.band}" width="${Math.max(e - s, 2)}" height="70" fill="url(#tl-dis)"/>`)
+    .map(([s, e]) => `<rect x="${s}" y="${H.band}" width="${Math.max(e - s, 2)}" height="66" fill="var(--warn)"/>`)
     .join("");
 
+  // Ticks, no labels. The timestamps used to be set inside the drawing, where
+  // they rendered around 7 CSS px once the viewBox was scaled to fit —
+  // unreadable, and eleven more things competing with the bands.
   let axis = "";
   for (let t = 0; t <= Math.floor(W / 300) * 300; t += 300) {
-    // Centred, half of "0:00" would fall outside the viewBox and be clipped,
-    // so the two ends are anchored inward.
-    const anchor = t === 0 ? "start" : t + 300 > W ? "end" : "middle";
-    axis +=
-      `<line x1="${t}" y1="${H.tick}" x2="${t}" y2="${H.tick + 20}" stroke="var(--rule-firm)" stroke-width="3"/>` +
-      `<text x="${t}" y="${H.label}" font-size="36" fill="var(--ink-soft)" text-anchor="${anchor}" font-family="var(--font-mono)">${t / 60}:00</text>`;
+    const major = t % 900 === 0;
+    axis += `<line x1="${t}" y1="${H.tick}" x2="${t}" y2="${H.tick + (major ? 26 : 14)}" stroke="var(--rule-firm)" stroke-width="3"/>`;
   }
 
-  // Serialised so the pointer handler can answer "what did each engine say
-  // here?" without refetching anything.
   const payload = JSON.stringify({
     W,
     emotions: d.emotions,
@@ -89,22 +87,20 @@ export function render(d: TimelineData): string {
     b: d.scenes_whisper.map((s) => [s[0], s[1], s[2]]),
   });
 
-  return `<svg class="tl" viewBox="0 0 ${W} ${H.total}" data-timeline='${payload}'
- role="img" aria-label="Two emotion tracks over the same ${Math.round(d.duration_s / 60)}-minute recording, one per speech-to-text engine, with a hatched strip between them marking every stretch where the two disagree.">
-<defs><pattern id="tl-dis" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--warn)" stroke-width="3.4"/></pattern></defs>
-${bands(d.scenes, H.trackA)}${hatch}${bands(d.scenes_whisper, H.trackB)}${axis}
-<line class="tl-play" x1="0" y1="0" x2="0" y2="${H.trackB + 120}" stroke="var(--signal)" stroke-width="4" opacity="0"/>
+  return `<svg class="tl" viewBox="0 0 ${W} ${H.total}" data-timeline='${payload}' data-cursor="drag across the recording"
+ role="img" aria-label="Two tracks over the same ${Math.round(d.duration_s / 60)}-minute recording, one per speech-to-text engine. The warm sections are where the two lead to a different answer, and they cover most of the recording.">
+<defs></defs>
+${band(d.scenes, H.trackA)}${hatch}${band(d.scenes_whisper, H.trackB)}${axis}
+<line class="tl-play" x1="0" y1="0" x2="0" y2="${H.trackB + 110}" stroke="var(--signal)" stroke-width="5" opacity="0"/>
 </svg>`;
 }
 
-/** The legend is real text, not part of the SVG, so it stays selectable and
- *  scales with the page rather than with the drawing. */
-export function legend(d: TimelineData): string {
-  const chip = (fill: string, name: string) =>
-    `<span class="chip"><i style="background:${fill}"></i>${name}</span>`;
+/** Two entries, not eight. A key a reader has to learn before the figure
+ *  says anything is a cost the figure has to earn, and this one did not. */
+export function legend(): string {
   return (
-    d.emotions.map((e, i) => chip(FILL[i], e)).join("") +
-    chip("var(--warn)", "the two disagree")
+    `<span class="chip"><i style="background:var(--ink-soft);opacity:.45"></i>both engines agree</span>` +
+    `<span class="chip"><i style="background:var(--warn)"></i>they lead to different answers</span>`
   );
 }
 
@@ -114,7 +110,7 @@ export function legend(d: TimelineData): string {
  * moment in the recording, what did each engine's transcript lead the
  * classifier to say, and did they agree?
  */
-export function attach(svg: SVGSVGElement, readout?: HTMLElement | null): void {
+export function attach(svg: SVGSVGElement, label?: (text: string) => void): void {
   const raw = svg.dataset.timeline;
   if (!raw) return;
   const d: { W: number; emotions: string[]; a: number[][]; b: number[][] } = JSON.parse(raw);
@@ -133,12 +129,15 @@ export function attach(svg: SVGSVGElement, readout?: HTMLElement | null): void {
     play.setAttribute("x1", String(t));
     play.setAttribute("x2", String(t));
     play.setAttribute("opacity", "1");
-    if (!readout) return;
+    if (!label) return;
     const sa = at(d.a, t);
     const sb = at(d.b, t);
     const name = (s?: number[]) => (s ? d.emotions[s[2]] : "—");
-    const agree = sa && sb ? (sa[2] === sb[2] ? "agree" : "differ") : "only one engine covers this";
-    readout.textContent = `${clock(t)} · AssemblyAI ${name(sa)} · Whisper ${name(sb)} · ${agree}`;
+    label(
+      sa && sb
+        ? `${clock(t)} · ${name(sa)} / ${name(sb)} · ${sa[2] === sb[2] ? "agree" : "differ"}`
+        : `${clock(t)} · only one engine reaches here`,
+    );
   };
 
   svg.addEventListener(
@@ -152,9 +151,6 @@ export function attach(svg: SVGSVGElement, readout?: HTMLElement | null): void {
     },
     { passive: true },
   );
-  svg.addEventListener("pointerleave", () => {
-    play.setAttribute("opacity", "0");
-    if (readout) readout.textContent = "";
-  });
+  svg.addEventListener("pointerleave", () => play.setAttribute("opacity", "0"));
   svg.style.touchAction = "pan-y";
 }
