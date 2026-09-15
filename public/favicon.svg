@@ -1,0 +1,11 @@
+<!--
+  The page's own subject, at 32px: a frame, and the thing that is outside it
+  still casting into it. Same two colours as the palette, hard-coded because a
+  favicon is rendered with no access to the document's custom properties.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" fill="#091018"/>
+  <path d="M22 9 L9 20 L9 25 L22 25 Z" fill="#f0b429" opacity="0.28"/>
+  <rect x="9" y="9" width="16" height="16" fill="none" stroke="#edeef0" stroke-width="2" stroke-dasharray="4 3"/>
+  <circle cx="24.5" cy="7.5" r="3.5" fill="#f0b429"/>
+</svg>

@@ -28,6 +28,25 @@ const figures: Record<string, { svg: string; extra?: string; legend?: string }> 
   npec: { svg: npec.render(npecData as any), extra: npec.rlStrip(npecData as any) },
 };
 
+// How each project leaves the 1240px column. Seven sections at one width read
+// as a document rather than a portfolio, and that — not the palette and not
+// the motion — was what made the page feel templated.
+//
+// The shape is chosen by what the figure IS, not to rotate for variety's sake:
+//   pin   — the figure holds a full-height stage while its readings pass it
+//   rail  — the figure is wider than any screen, so you travel along it
+//   bleed — the figure takes the whole viewport width, prose stays in column
+//
+// `shadow` pins because its drawing is a single scene you point a light at.
+// `timeline` rails because it is a 3099-unit-wide picture of 52 minutes:
+// scrubbing sideways through a recording is what the data already is.
+const shapes: Record<string, "pin" | "rail" | "bleed"> = {
+  shadow: "pin",
+  timeline: "rail",
+  platform: "bleed",
+  npec: "bleed",
+};
+
 const title = "Oleksii Krasnoshtanov";
 const description =
   "Applied Data Science & AI. Computer vision, NLP, RAG systems and MLOps — four projects that shipped to someone other than a grader.";
@@ -42,6 +61,7 @@ const site = "https://krasnoshtanov.com";
     <title>{title} — computer vision, NLP, MLOps</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={site + "/"} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     <meta property="og:type" content="profile" />
     <meta property="og:url" content={site + "/"} />
@@ -91,13 +111,14 @@ const site = "https://krasnoshtanov.com";
           <a href="mailto:oleksiikrasnoshtanov@gmail.com" data-cursor="oleksiikrasnoshtanov@gmail.com">Email</a>
         </nav>
         <p class="tag">Tilburg, Netherlands · 9.1/10 · BUas Scholarship · EN / UK / RU</p>
+        <p class="tag hero__cue" aria-hidden="true">seven projects, every number recomputed at build time</p>
       </section>
 
       <div id="work">
         {
           projects.map((p, i) => {
             const fig = p.visual ? figures[p.visual] : undefined;
-            const wide = p.id === "timeline";
+            const shape = shapes[p.id] ?? "bleed";
             const stats = (
               <dl class="stats">
                 {p.stats.map((s) => (
@@ -140,76 +161,137 @@ const site = "https://krasnoshtanov.com";
               </>
             );
 
-            return (
-              <section class="shell project" id={p.id}>
+            const head = (
+              <div class="shell">
                 <div class="project__head">
                   <span class="project__index">
                     {String(i + 1).padStart(2, "0")} — {p.name}
                   </span>
                   <span class="tag">{p.meta}</span>
                 </div>
-
                 <h2 class="project__finding">{p.finding}</h2>
-
-                <div class={"project__grid" + (wide ? " project__grid--wide" : "")}>
-                  {wide ? (
-                    <>
-                      <div>{figure}{prose}</div>
-                      <div>{stats}</div>
-                    </>
-                  ) : (
-                    <>
-                      <div>{prose}</div>
-                      <div>{figure}{stats}</div>
-                    </>
-                  )}
-                </div>
-              </section>
+              </div>
             );
-          })
-        }
 
-        {
-          briefs.map((b, i) => {
-            const flow = arch.flows[b.id];
+            if (shape === "pin") {
+              return (
+                <section class="project project--pin" id={p.id}>
+                  {head}
+                  {/*
+                    The stage is sticky and the readings are a column beside it
+                    that is simply TALLER. No scroll handler decides when to
+                    release it: the browser does, because the sticky element
+                    stops when its grid row runs out. That is the whole trick.
+                  */}
+                  <div class="pin">
+                    <div class="pin__stage">{figure}</div>
+                    <div class="pin__feed">
+                      {prose}
+                      {stats}
+                    </div>
+                  </div>
+                </section>
+              );
+            }
+
+            if (shape === "rail") {
+              return (
+                <section class="project project--rail" id={p.id}>
+                  {head}
+                  <div
+                    class="rail"
+                    tabindex="0"
+                    role="region"
+                    aria-label={p.name + " — scroll sideways to move through the recording"}
+                  >
+                    {figure}
+                  </div>
+                  <p class="shell tag rail__hint" aria-hidden="true">drag sideways ⇢</p>
+                  <div class="shell project__grid project__grid--wide">
+                    <div>{prose}</div>
+                    <div>{stats}</div>
+                  </div>
+                </section>
+              );
+            }
+
             return (
-              <section class="shell project" id={b.id}>
-                <div class="project__head">
-                  <span class="project__index">
-                    {String(projects.length + i + 1).padStart(2, "0")} — {b.name}
-                  </span>
-                  <span class="tag">{b.meta}</span>
-                </div>
-
-                <h2 class="project__finding">{b.finding}</h2>
-
-                <div class="project__grid">
-                  <div>
-                    <p class="project__body">{b.body}</p>
-                    {b.repo && (
-                      <p class="tag">
-                        <a href={b.repo}>Repository</a>
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    {flow && (
-                      <figure data-fig={b.id}>
-                        <Fragment set:html={arch.render(flow)} />
-                        <figcaption>{flow.note}</figcaption>
-                      </figure>
-                    )}
-                  </div>
+              <section class="project project--bleed" id={p.id}>
+                {head}
+                <div class="bleed">{figure}</div>
+                <div class="shell project__grid project__grid--wide">
+                  <div>{prose}</div>
+                  <div>{stats}</div>
                 </div>
               </section>
             );
           })
         }
+
+        {/*
+          The last three are short — a paragraph and a pipeline diagram each.
+          Stacked vertically they were three more identical bands at the end of
+          a page that already had four. Side by side they are one object you
+          travel along, and the diagrams finally get to be the width they were
+          drawn at. The rail is a plain overflow-x container: the browser's own
+          scrolling, so a trackpad, a shift-wheel, a dragged scrollbar, arrow
+          keys and a touch swipe all work without a line of JavaScript.
+        */}
+        <section class="project project--rail" id="briefs">
+          <div class="shell">
+            <div class="project__head">
+              <span class="project__index">
+                05—07 — Also shipped
+              </span>
+              <span class="tag">three shorter ones, side by side</span>
+            </div>
+            <h2 class="project__finding">Three more that reached someone.</h2>
+          </div>
+
+          <div
+            class="rail rail--cards"
+            tabindex="0"
+            role="region"
+            aria-label="Three shorter projects — scroll sideways"
+          >
+            <div class="rail__track">
+              {
+                briefs.map((b, i) => {
+                  const flow = arch.flows[b.id];
+                  return (
+                    <article class="card" id={b.id}>
+                      <div class="project__head">
+                        <span class="project__index">
+                          {String(projects.length + i + 1).padStart(2, "0")} — {b.name}
+                        </span>
+                      </div>
+                      <p class="tag">{b.meta}</p>
+                      <h3 class="card__finding">{b.finding}</h3>
+                      <p class="project__body">{b.body}</p>
+                      {flow && (
+                        <figure data-fig={b.id}>
+                          <Fragment set:html={arch.render(flow)} />
+                          <figcaption>{flow.note}</figcaption>
+                        </figure>
+                      )}
+                      {b.repo && (
+                        <p class="tag card__repo">
+                          <a href={b.repo}>Repository</a>
+                        </p>
+                      )}
+                    </article>
+                  );
+                })
+              }
+            </div>
+          </div>
+          <p class="shell tag rail__hint" aria-hidden="true">drag sideways ⇢</p>
+        </section>
       </div>
     </main>
 
     <footer class="shell">
-      <p class="tag" style="max-width: 62ch; line-height: 1.8">
+      <p class="tag footer__note">
         Every number here is either recomputed from committed data at build time, or recorded
         in a named file and linked to it. Where a figure I once wrote down turned out to have
         no source, it is gone rather than hedged. The build refuses to publish if that stops

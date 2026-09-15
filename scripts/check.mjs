@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { requiredHashes } from "./csp.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -394,6 +395,57 @@ function checkDist() {
   if (figures.length && viewBoxes.length < figures.length) {
     fail(`${figures.length} figures but only ${viewBoxes.length} viewBox attributes`);
   } else pass(`${figures.length} figures, each with an svg viewBox`);
+
+  // No architecture label wider than the box it is drawn in.
+  //
+  // SVG does not wrap or ellipsize, so an oversized <text> draws straight over
+  // its neighbour — silently, and at every render size. Plex Mono advances
+  // 0.6em per glyph, so the drawn width of each label is exactly computable
+  // from the emitted markup, and this fails the build rather than shipping a
+  // diagram that reads as a smudge. Anyone lengthening a node label finds out
+  // here.
+  const PAD = 14;
+  let widest = 0;
+  for (const [, g] of index.matchAll(/<g class="ar-node"[^>]*>([\s\S]*?)<\/g>/g)) {
+    const w = Number(g.match(/<rect[^>]*\swidth="([\d.]+)"/)?.[1]);
+    if (!w) {
+      fail("an ar-node group has no rect width");
+      continue;
+    }
+    for (const [, size, text] of g.matchAll(/<text[^>]*font-size="([\d.]+)"[^>]*>([^<]*)<\/text>/g)) {
+      const drawn = text.length * 0.6 * Number(size);
+      const room = w - PAD * 2;
+      widest = Math.max(widest, drawn / room);
+      if (drawn > room + 0.5) {
+        fail(`architecture label "${text}" draws ${drawn.toFixed(1)} units wide in a ${room.toFixed(1)}-unit box`);
+      }
+    }
+  }
+  pass(`architecture labels fit their boxes (widest fills ${(widest * 100).toFixed(0)}%)`);
+
+  // Every inline style the page ships is covered by the CSP that will serve it.
+  //
+  // This is the failure that cannot be seen locally: `astro dev` and `astro
+  // preview` ignore _headers, so a blocked <style> looks perfect right up to
+  // the moment it is live. It blocked the @font-face block once, and since
+  // --font-display is declared inside that block, the page rendered in Times
+  // New Roman rather than merely losing a webfont.
+  const shipped = readFileSync(join(dist, "_headers"), "utf8");
+  const styleSrc = shipped.match(/style-src ([^;]+)/)?.[1] ?? "";
+  if (styleSrc.includes("'unsafe-inline'")) {
+    pass("style-src allows inline styles outright, so no hashes are needed");
+  } else {
+    const need = requiredHashes();
+    const missing = need.filter((h) => !styleSrc.includes(h));
+    if (missing.length) {
+      fail(
+        `${missing.length} inline style(s) in the build are not covered by style-src — ` +
+          `the browser will block them. Run scripts/csp.mjs after the build.`,
+      );
+    } else {
+      pass(`${need.length} inline style hash(es) present in the shipped style-src`);
+    }
+  }
 
   // The CV link is the one thing a recruiter is most likely to click.
   const redirects = read("public/_redirects");

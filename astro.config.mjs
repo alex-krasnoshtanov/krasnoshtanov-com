@@ -9,6 +9,13 @@ export default defineConfig({
   // deliberately. Same choice here, for the same reason.
   compressHTML: true,
 
+  // public/_headers serves this page under `style-src 'self'`, with no
+  // 'unsafe-inline' and no hashes — deliberately. An inlined stylesheet is
+  // therefore not an optimisation here, it is a stylesheet the browser
+  // refuses to apply, and the failure only ever appears in production because
+  // `astro dev` and `astro preview` do not read _headers.
+  build: { inlineStylesheets: "never" },
+
   // Self-hosted rather than a <link> to Google's CDN: one less
   // render-blocking third-party request, and no EU question about who gets
   // the visitor's IP. The Fonts API is stable in 7.x, no flag needed.
