@@ -196,6 +196,10 @@
   .chips { display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-s); }
   .chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft); }
   .chip i { width: 12px; height: 12px; border: 1px solid var(--rule-firm); }
+  /* These two were style attributes until `style-src 'self'` blocked them,
+     which left two colourless squares beside the words naming their colours. */
+  .chip i[data-tone="agree"]  { background: var(--ink-soft); opacity: 0.45; }
+  .chip i[data-tone="differ"] { background: var(--warn); }
 
   .note { max-width: 58ch; line-height: 1.75; margin-top: var(--gap-s); }
 
@@ -235,6 +239,7 @@
   .ar-node text { transition: opacity 160ms ease; }
 
   footer { padding-block: var(--gap-m) var(--gap-xl); border-top: 1px solid var(--rule); color: var(--ink-soft); }
+  .footer__note { max-width: 62ch; line-height: 1.8; }
 }
 
 /* ---------------------------------------------------------------------------

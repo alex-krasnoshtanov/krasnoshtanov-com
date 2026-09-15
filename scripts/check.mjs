@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 import { readFileSync, existsSync, statSync, readdirSync } from "node:fs";
 import { join, resolve, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { requiredHashes } from "./csp.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(ROOT, p), "utf8");
@@ -421,6 +422,30 @@ function checkDist() {
     }
   }
   pass(`architecture labels fit their boxes (widest fills ${(widest * 100).toFixed(0)}%)`);
+
+  // Every inline style the page ships is covered by the CSP that will serve it.
+  //
+  // This is the failure that cannot be seen locally: `astro dev` and `astro
+  // preview` ignore _headers, so a blocked <style> looks perfect right up to
+  // the moment it is live. It blocked the @font-face block once, and since
+  // --font-display is declared inside that block, the page rendered in Times
+  // New Roman rather than merely losing a webfont.
+  const shipped = readFileSync(join(dist, "_headers"), "utf8");
+  const styleSrc = shipped.match(/style-src ([^;]+)/)?.[1] ?? "";
+  if (styleSrc.includes("'unsafe-inline'")) {
+    pass("style-src allows inline styles outright, so no hashes are needed");
+  } else {
+    const need = requiredHashes();
+    const missing = need.filter((h) => !styleSrc.includes(h));
+    if (missing.length) {
+      fail(
+        `${missing.length} inline style(s) in the build are not covered by style-src — ` +
+          `the browser will block them. Run scripts/csp.mjs after the build.`,
+      );
+    } else {
+      pass(`${need.length} inline style hash(es) present in the shipped style-src`);
+    }
+  }
 
   // The CV link is the one thing a recruiter is most likely to click.
   const redirects = read("public/_redirects");

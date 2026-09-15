@@ -99,8 +99,12 @@ ${band(d.scenes, H.trackA)}${hatch}${band(d.scenes_whisper, H.trackB)}${axis}
  *  says anything is a cost the figure has to earn, and this one did not. */
 export function legend(): string {
   return (
-    `<span class="chip"><i style="background:var(--ink-soft);opacity:.45"></i>both engines agree</span>` +
-    `<span class="chip"><i style="background:var(--warn)"></i>they lead to different answers</span>`
+    // The swatch colours are a data attribute rather than a style attribute
+    // because `_headers` serves this page under `style-src 'self'`, which
+    // blocks inline styles — and a blocked swatch is a colourless square next
+    // to the words explaining what its colour means.
+    `<span class="chip"><i data-tone="agree"></i>both engines agree</span>` +
+    `<span class="chip"><i data-tone="differ"></i>they lead to different answers</span>`
   );
 }
 
