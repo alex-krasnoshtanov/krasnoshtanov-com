@@ -74,9 +74,34 @@ design/            the design canvas working files (see below)
 
 ```bash
 npm run prep      # re-derive data/ from ../<project repos>. Needs them checked out.
-npm run build     # check --data  ->  astro build  ->  check --dist
-npm run dev
+npm run build     # check --data -> astro build -> csp.mjs -> check --dist
+npm run dev       # fast loop. NOT what a visitor gets — see below.
+npm run preview   # build, then serve dist/ the way it ships
 npm run deploy    # build, then wrangler deploy
+```
+
+### `npm run dev` lies, twice
+
+Both of these have already shipped broken while the dev server looked perfect,
+so check anything visual against `npm run preview`, not `npm run dev`:
+
+- **Dev serves unminified CSS.** The minifier once folded `animation-timeline`
+  into the `animation` shorthand, where no browser accepts it, and every
+  scroll-driven animation on the page was silently dropped in production.
+- **Dev does not read `public/_headers`.** The CSP there once blocked the
+  inlined `@font-face` block, and since `--font-display` is declared inside
+  it, the live page rendered in Times New Roman.
+
+`check.mjs --dist` now fails the build on both, but it can only catch the
+cases it knows about. If a change is visual, look at the built output.
+
+Astro keeps one dev and one preview server per project. If a start fails with
+*"Another … server is already running"*, that one is probably serving the
+current `dist/` already — open the URL it prints, or replace it:
+
+```bash
+npx astro preview --force     # or: npx astro preview stop
+npx astro dev stop
 ```
 
 `prep.mjs` runs **only on a machine that has the project repos**. A CI runner
