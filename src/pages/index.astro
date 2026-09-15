@@ -572,6 +572,48 @@ const site = "https://krasnoshtanov.com";
         report();
       }
 
+      // Which section is the subject, decided by the scroll rather than by
+      // where the pointer was last put down. Runs on every browser, because
+      // the staleness it fixes is not a missing feature: Chromium re-resolves
+      // :hover during a scroll and Firefox does not, so on Firefox the
+      // highlight simply stayed behind until the mouse moved.
+      //
+      // Greatest visible height wins, not "contains the middle of the
+      // screen" — a section taller than the viewport would otherwise hand the
+      // subject away every time a gap crossed the midpoint.
+      if (fine && !still) {
+        const attended = [...document.querySelectorAll<HTMLElement>("#work > section.project")];
+        if (attended.length) {
+          root.dataset.attend = "";
+          let pending = false;
+          const attend = () => {
+            pending = false;
+            let subject: HTMLElement | null = null;
+            let mostSeen = 0;
+            for (const s of attended) {
+              const r = s.getBoundingClientRect();
+              const visible = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+              if (visible > mostSeen) {
+                mostSeen = visible;
+                subject = s;
+              }
+            }
+            for (const s of attended) s.toggleAttribute("data-current", s === subject);
+          };
+          addEventListener(
+            "scroll",
+            () => {
+              if (pending) return;
+              pending = true;
+              requestAnimationFrame(attend);
+            },
+            { passive: true },
+          );
+          addEventListener("resize", attend, { passive: true });
+          attend();
+        }
+      }
+
       // Figures hydrate only when scrolled to, each module its own chunk. If
       // any of this fails the drawing is still there — nothing was removed to
       // make room for it.
