@@ -1,65 +1,56 @@
 /*
-  Design tokens.
+  Design tokens — "darkroom".
 
-  The type scale, the spacing steps and --measure are lifted from
-  Family-Website/packages/theme/tokens.css, where each value was measured
-  rather than picked. The palette is NOT: the PEC green is the family
-  business's identity and has no business on a personal site.
+  The ground is dark and the accent is light-coloured because that is what
+  this page is about: three of the four projects are a measurement made under
+  a light source, and the strongest of them locates a person from the shadow
+  they cast. The cursor on this page IS a light source. A pale-paper palette
+  had no reason behind it beyond being safe.
 
   ---------------------------------------------------------------------------
-  TWO ACCENTS, AND WHY THEY MEAN SOMETHING
+  MEASURED, NOT EYEBALLED
 
-  Every project on this page is a measurement, so the two accents are reserved
-  for the two things a measurement can be:
+  oklch converted to linear sRGB, WCAG ratio against --ground:
 
-    --signal   the system's answer. Predictions, chosen models, results.
-    --warn     where the system disagrees with itself, declines to answer, or
-               scores badly. Never decoration, never an error state.
+    ink        15.56:1      signal (light)   10.13:1
+    ink-soft    7.16:1      warn              5.43:1
 
-  They share one lightness and one chroma and differ only in hue, so neither
-  shouts louder than the other and a reader can tell them apart without a
-  legend telling them which is "good".
+  --rule is a hairline, not text, and is not held to 4.5:1. Do not raise any
+  of the lightness values without re-running the check in scripts/check.mjs.
 
-  Both are measured against --paper, not against white, by converting oklch to
-  linear sRGB and computing the WCAG ratio. Do not eyeball these and do not
-  raise the lightness without re-measuring:
-
-    ink       15.19:1     ink-soft   6.21:1
-    signal     5.00:1     warn       5.36:1
-
-  L is 0.52, not the 0.55 this started at: 0.55 measured 4.40:1 for the blue
-  and FAILED, while the red passed at 4.71:1 — so the two were never actually
-  interchangeable at that lightness, which is the whole premise of the pair.
-  0.52 clears 4.5:1 for both and keeps the shared-L-and-C promise true.
-
-  --rule and --rule-firm are non-text and are not held to 4.5:1.
+  Two accents, and each means one thing:
+    --signal  light, and by extension the system's answer. Predictions,
+              results, the thing the model got right.
+    --warn    where the system disagrees with itself, declines to answer, or
+              scores badly. Never an error state, never decoration.
 */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  --paper:     oklch(0.968 0.004 250);
-  --paper-2:   oklch(0.945 0.005 250);
-  --ink:       oklch(0.235 0.018 250);
-  --ink-soft:  oklch(0.470 0.014 250);
-  --rule:      oklch(0.870 0.006 250);
-  --rule-firm: oklch(0.760 0.010 250);
+  --ground:    oklch(0.17 0.020 250);
+  --ground-2:  oklch(0.215 0.022 250);
+  --ground-3:  oklch(0.26 0.024 250);
+  --ink:       oklch(0.93 0.006 250);
+  --ink-soft:  oklch(0.70 0.012 250);
+  --rule:      oklch(0.36 0.016 250);
+  --rule-firm: oklch(0.48 0.018 250);
 
-  --signal:      oklch(0.52 0.13 248);
-  --warn:        oklch(0.52 0.13 28);
-  --signal-wash: oklch(0.52 0.13 248 / 0.10);
+  --signal:      oklch(0.80 0.15 85);
+  --signal-dim:  oklch(0.80 0.15 85 / 0.16);
+  --warn:        oklch(0.65 0.17 15);
+  --warn-dim:    oklch(0.65 0.17 15 / 0.18);
 
-  /* Fluid scale, so it works down to a phone without a media query for type.
-     --step--2 is deliberately NOT fluid: it is the floor for the tracked mono
-     micro-labels, and below 12px uppercase mono with letter-spacing keeps its
-     stroke weight but loses its word shape. */
+  /* Fluid scale. --step--2 is deliberately NOT fluid: it is the floor for the
+     tracked mono micro-labels, and below 12px uppercase mono with
+     letter-spacing keeps its stroke weight but loses its word shape. */
   --step--2: 0.75rem;
   --step--1: clamp(0.78rem, 0.75rem + 0.15vw, 0.86rem);
   --step-0:  clamp(1rem, 0.96rem + 0.2vw, 1.12rem);
   --step-1:  clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem);
-  --step-2:  clamp(1.6rem, 1.4rem + 1vw, 2.2rem);
-  --step-3:  clamp(2.1rem, 1.7rem + 2vw, 3.4rem);
-  --step-4:  clamp(2.8rem, 2rem + 4vw, 5.2rem);
+  --step-2:  clamp(1.75rem, 1.4rem + 1.6vw, 2.9rem);
+  --step-3:  clamp(2.3rem, 1.7rem + 2.8vw, 4.2rem);
+  --step-4:  clamp(3rem, 1.9rem + 5.6vw, 7rem);
 
   --gap-xs: 0.5rem;
   --gap-s:  1rem;
@@ -67,10 +58,16 @@
   --gap-l:  4rem;
   --gap-xl: 7rem;
 
-  /* 54ch, not 62ch: `ch` is the advance of "0", which is narrower than the
-     average lowercase glyph, so a ch count buys about 20% more characters
-     than it claims. 54ch measures ~64 characters per line here. */
+  /* 54ch, not 62ch: `ch` is the advance of "0", narrower than the average
+     lowercase glyph, so a ch count buys ~20% more characters than it claims.
+     54ch measures about 64 characters per line here. */
   --measure: 54ch;
-  --shell:   1180px;
-  --pad-x:   clamp(1rem, 4vw, 2.5rem);
+  --shell:   1240px;
+  --pad-x:   clamp(1rem, 4vw, 3rem);
+
+  /* Written by the pointer handler, read by anything that wants to react to
+     it. Defaults put the light top-left of centre so the page looks lit
+     before the cursor ever arrives, and on touch, where it never does. */
+  --mx: 0.34;
+  --my: 0.3;
 }

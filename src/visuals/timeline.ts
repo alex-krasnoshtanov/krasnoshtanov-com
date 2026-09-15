@@ -80,9 +80,20 @@ export function render(d: TimelineData): string {
       `<text x="${t}" y="${H.label}" font-size="36" fill="var(--ink-soft)" text-anchor="${anchor}" font-family="var(--font-mono)">${t / 60}:00</text>`;
   }
 
-  return `<svg viewBox="0 0 ${W} ${H.total}" role="img" aria-label="Two emotion tracks over the same ${Math.round(d.duration_s / 60)}-minute recording, one per speech-to-text engine, with a hatched strip between them marking every stretch where the two disagree.">
+  // Serialised so the pointer handler can answer "what did each engine say
+  // here?" without refetching anything.
+  const payload = JSON.stringify({
+    W,
+    emotions: d.emotions,
+    a: d.scenes.map((s) => [s[0], s[1], s[2]]),
+    b: d.scenes_whisper.map((s) => [s[0], s[1], s[2]]),
+  });
+
+  return `<svg class="tl" viewBox="0 0 ${W} ${H.total}" data-timeline='${payload}'
+ role="img" aria-label="Two emotion tracks over the same ${Math.round(d.duration_s / 60)}-minute recording, one per speech-to-text engine, with a hatched strip between them marking every stretch where the two disagree.">
 <defs><pattern id="tl-dis" width="9" height="9" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="9" stroke="var(--warn)" stroke-width="3.4"/></pattern></defs>
 ${bands(d.scenes, H.trackA)}${hatch}${bands(d.scenes_whisper, H.trackB)}${axis}
+<line class="tl-play" x1="0" y1="0" x2="0" y2="${H.trackB + 120}" stroke="var(--signal)" stroke-width="4" opacity="0"/>
 </svg>`;
 }
 
@@ -97,7 +108,53 @@ export function legend(d: TimelineData): string {
   );
 }
 
-export function attach(): void {
-  /* Nothing to animate: a 51-minute timeline is a thing to read, not to
-     watch, and the disagreement is visible the moment it renders. */
+/**
+ * Nothing here animates: a 51-minute timeline is a thing to read, not to
+ * watch. What the pointer adds is the ability to ASK it something — at this
+ * moment in the recording, what did each engine's transcript lead the
+ * classifier to say, and did they agree?
+ */
+export function attach(svg: SVGSVGElement, readout?: HTMLElement | null): void {
+  const raw = svg.dataset.timeline;
+  if (!raw) return;
+  const d: { W: number; emotions: string[]; a: number[][]; b: number[][] } = JSON.parse(raw);
+  const play = svg.querySelector<SVGLineElement>(".tl-play");
+  if (!play) return;
+
+  const at = (track: number[][], t: number) => track.find((s) => t >= s[0] && t < s[1]);
+  const clock = (t: number) =>
+    `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+
+  let queued = false;
+  let lastT = 0;
+  const paint = () => {
+    queued = false;
+    const t = lastT;
+    play.setAttribute("x1", String(t));
+    play.setAttribute("x2", String(t));
+    play.setAttribute("opacity", "1");
+    if (!readout) return;
+    const sa = at(d.a, t);
+    const sb = at(d.b, t);
+    const name = (s?: number[]) => (s ? d.emotions[s[2]] : "—");
+    const agree = sa && sb ? (sa[2] === sb[2] ? "agree" : "differ") : "only one engine covers this";
+    readout.textContent = `${clock(t)} · AssemblyAI ${name(sa)} · Whisper ${name(sb)} · ${agree}`;
+  };
+
+  svg.addEventListener(
+    "pointermove",
+    (e: PointerEvent) => {
+      const r = svg.getBoundingClientRect();
+      lastT = Math.min(d.W, Math.max(0, ((e.clientX - r.left) / r.width) * d.W));
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(paint);
+    },
+    { passive: true },
+  );
+  svg.addEventListener("pointerleave", () => {
+    play.setAttribute("opacity", "0");
+    if (readout) readout.textContent = "";
+  });
+  svg.style.touchAction = "pan-y";
 }

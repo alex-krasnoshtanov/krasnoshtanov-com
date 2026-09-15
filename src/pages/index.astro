@@ -16,17 +16,26 @@ import * as platform from "../visuals/platform";
 import * as npec from "../visuals/npec";
 
 // Every figure is rendered HERE, at build time, into the page. That is what
-// makes the page work with JavaScript off and what removes the whole class of
-// "the canvas failed to init and the visitor sees an empty box" bugs: there is
-// no empty box to show, because the final state is already in the HTML.
-const figures: Record<string, { svg: string; extra?: string; legend?: string }> = {
-  shadow: { svg: shadow.render(shadowData as any) },
+// makes it work with JavaScript off and what removes the whole class of "the
+// script failed and the visitor sees an empty box" bugs: there is no empty box
+// to show, because the finished drawing is already in the HTML. The pointer
+// handlers below only move what is already there.
+const figures: Record<string, { svg: string; extra?: string; legend?: string; hint?: string }> = {
+  shadow: {
+    svg: shadow.render(shadowData as any),
+    hint: "move the pointer to move the light",
+  },
   timeline: {
     svg: timeline.render(timelineData as any),
     legend: timeline.legend(timelineData as any),
+    hint: "drag across to read both engines at any moment",
   },
   platform: { svg: platform.render(platformData as any), extra: platform.topology() },
-  npec: { svg: npec.render(npecData as any), extra: npec.rlStrip(npecData as any) },
+  npec: {
+    svg: npec.render(npecData as any),
+    extra: npec.rlStrip(npecData as any),
+    hint: "hover a cell for its full row",
+  },
 };
 
 const title = "Oleksii Krasnoshtanov";
@@ -52,21 +61,20 @@ const site = "https://krasnoshtanov.com";
     <meta property="profile:last_name" content="Krasnoshtanov" />
     {/*
       No og:image yet, deliberately. A link card with a 404'd image reads
-      worse than one with no image at all, and there is no way to rasterise
-      1200x630 text here without pulling in a headless browser for one file.
-      When it is made: put it at public/og.png, add og:image, og:image:width,
-      og:image:height and twitter:card, and scripts/check.mjs will then
-      enforce that the file exists at the declared dimensions.
+      worse than one with no image at all. When it is made: put it at
+      public/og.png and declare og:image — scripts/check.mjs then enforces
+      that the file exists at the declared dimensions.
     */}
     <meta name="twitter:card" content="summary" />
-    <meta name="theme-color" content="#f2f5f7" />
+    <meta name="theme-color" content="#091018" />
 
     <Font cssVariable="--font-display" preload />
     <Font cssVariable="--font-mono" />
   </head>
 
   <body>
-    <a class="sr-only" href="#projects">Skip to the projects</a>
+    <div class="progress" aria-hidden="true"></div>
+    <a class="sr-only" href="#work">Skip to the projects</a>
 
     <header class="shell bar">
       <span class="tag">krasnoshtanov.com</span>
@@ -86,97 +94,83 @@ const site = "https://krasnoshtanov.com";
           myself.
         </p>
         <nav class="hero__links" aria-label="Elsewhere">
-          <a href="/cv.pdf">Résumé (PDF)</a>
+          <a href="/cv.pdf">Résumé</a>
           <a href="https://github.com/alex-krasnoshtanov">GitHub</a>
           <a href="https://linkedin.com/in/oleksii-krasnoshtanov/">LinkedIn</a>
-          <a href="mailto:oleksiikrasnoshtanov@gmail.com">oleksiikrasnoshtanov@gmail.com</a>
+          <a href="mailto:oleksiikrasnoshtanov@gmail.com">Email</a>
         </nav>
         <p class="tag">Tilburg, Netherlands · 9.1/10 · BUas Scholarship · EN / UK / RU</p>
       </section>
 
-      <div class="shell"><div class="ticks"></div></div>
-
-      <div id="projects">
+      <div id="work">
         {
-          projects.map((p) => {
+          projects.map((p, i) => {
             const fig = p.visual ? figures[p.visual] : undefined;
+            const wide = p.id === "timeline";
+            const stats = (
+              <dl class="stats">
+                {p.stats.map((s) => (
+                  <div>
+                    <dt>{s.label}</dt>
+                    <dd
+                      data-signal={s.tone === "signal" || undefined}
+                      data-warn={s.tone === "warn" || undefined}
+                    >
+                      {s.value}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            );
+            const figure = fig && (
+              <figure data-fig={p.id}>
+                <Fragment set:html={fig.svg} />
+                {fig.extra && <Fragment set:html={fig.extra} />}
+                {fig.legend && (
+                  <div class="chips">
+                    <Fragment set:html={fig.legend} />
+                  </div>
+                )}
+                {fig.hint && <p class="readout" data-readout={p.id}></p>}
+                <figcaption>
+                  {p.id === "shadow" &&
+                    "Boxes and coordinates are real model output. The light, the figure and the cast shadow are a diagram of the setup — the source frames are not redistributed. "}
+                  <a href={p.source!.href}>{p.source!.label}</a>
+                </figcaption>
+              </figure>
+            );
+            const prose = (
+              <>
+                {p.body.map((t) => (
+                  <p class="project__body">{t}</p>
+                ))}
+                {p.note && <p class="tag note">{p.note}</p>}
+                <p class="tag">
+                  <a href={p.repo}>Repository</a>
+                </p>
+              </>
+            );
+
             return (
-              <section class="shell project">
+              <section class="shell project" id={p.id}>
                 <div class="project__head">
-                  <span class="tag">{p.name}</span>
+                  <span class="project__index">{String(i + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}</span>
                   <span class="tag">{p.meta}</span>
                 </div>
-                <div class="ticks"></div>
 
                 <h2 class="project__finding">{p.finding}</h2>
+                <p class="tag">{p.name}</p>
 
-                <div class={"project__grid" + (p.id === "timeline" ? " project__grid--wide" : "")}>
-                  {p.id === "timeline" ? (
+                <div class={"project__grid" + (wide ? " project__grid--wide" : "")}>
+                  {wide ? (
                     <>
-                      <div>
-                        {fig && (
-                          <figure data-fig={p.id}>
-                            <Fragment set:html={fig.svg} />
-                            {fig.legend && (
-                              <div class="chips">
-                                <Fragment set:html={fig.legend} />
-                              </div>
-                            )}
-                            <figcaption>
-                              top: AssemblyAI transcript · bottom: Whisper large&#8209;v3 · same
-                              classifier on both ·{" "}
-                              <a href={p.source!.href}>{p.source!.label}</a>
-                            </figcaption>
-                          </figure>
-                        )}
-                        {p.body.map((t) => (
-                          <p class="project__body">{t}</p>
-                        ))}
-                      </div>
-                      <div>
-                        <dl class="stats">
-                          {p.stats.map((s) => (
-                            <div>
-                              <dt>{s.label}</dt>
-                              <dd data-signal={s.tone === "signal" || undefined} data-warn={s.tone === "warn" || undefined}>
-                                {s.value}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                        {p.note && <p class="tag note">{p.note}</p>}
-                      </div>
+                      <div>{figure}{prose}</div>
+                      <div>{stats}</div>
                     </>
                   ) : (
                     <>
-                      <div>
-                        {p.body.map((t) => (
-                          <p class="project__body">{t}</p>
-                        ))}
-                        {p.note && <p class="tag note">{p.note}</p>}
-                        <p class="tag"><a href={p.repo}>Repository</a></p>
-                      </div>
-                      <div>
-                        {fig && (
-                          <figure data-fig={p.id}>
-                            <Fragment set:html={fig.svg} />
-                            {fig.extra && <Fragment set:html={fig.extra} />}
-                            <figcaption>
-                              <a href={p.source!.href}>{p.source!.label}</a>
-                            </figcaption>
-                          </figure>
-                        )}
-                        <dl class="stats">
-                          {p.stats.map((s) => (
-                            <div>
-                              <dt>{s.label}</dt>
-                              <dd data-signal={s.tone === "signal" || undefined} data-warn={s.tone === "warn" || undefined}>
-                                {s.value}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                      </div>
+                      <div>{prose}</div>
+                      <div>{figure}{stats}</div>
                     </>
                   )}
                 </div>
@@ -186,9 +180,11 @@ const site = "https://krasnoshtanov.com";
         }
       </div>
 
-      <section class="shell">
-        <div class="project__head"><span class="tag">Also</span></div>
-        <div class="ticks"></div>
+      <section class="shell project">
+        <div class="project__head">
+          <span class="project__index">Also</span>
+          <span class="tag">no figure, on purpose — there is no data to draw</span>
+        </div>
         {
           briefs.map((b) => (
             <article class="brief">
@@ -207,30 +203,69 @@ const site = "https://krasnoshtanov.com";
     </main>
 
     <footer class="shell">
-      <p class="tag" style="max-width: 62ch; line-height: 1.7">
-        Every figure on this page is either recomputed from committed data at build time, or
-        recorded in a named file and linked to it. Where a number I once wrote down turned out
-        to have no source, it is gone rather than hedged. The build refuses to publish if any
-        of that stops being true.
+      <p class="tag" style="max-width: 62ch; line-height: 1.8">
+        Every figure here is either recomputed from committed data at build time, or recorded
+        in a named file and linked to it. Where a number I once wrote down turned out to have
+        no source, it is gone rather than hedged. The build refuses to publish if any of that
+        stops being true.
       </p>
     </footer>
 
     <script>
-      // The only island on the page, and it adds motion to a figure that is
-      // already fully drawn. If this never runs the page is unchanged.
-      const fig = document.querySelector('[data-fig="shadow"] svg');
-      if (fig) {
-        new IntersectionObserver((entries, obs) => {
-          for (const e of entries) {
-            if (!e.isIntersecting) continue;
-            obs.disconnect();
-            import("../visuals/shadow")
-              .then((m) => m.attach(fig as unknown as SVGElement))
-              .catch(() => {
-                /* The static drawing stands. Nothing to recover. */
-              });
-          }
-        }, { rootMargin: "120px" }).observe(fig);
+      // ONE pointer handler for the whole page. It writes two numbers to the
+      // root and stops; the light, the revealed grid and the headline's
+      // weight are all CSS reading those numbers. Doing it in CSS rather than
+      // per-element JS is what keeps this cheap enough to run on every frame.
+      const root = document.documentElement;
+      if (matchMedia("(hover: hover)").matches && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        let x = 0.34;
+        let y = 0.3;
+        let queued = false;
+        addEventListener(
+          "pointermove",
+          (e) => {
+            x = e.clientX / innerWidth;
+            y = e.clientY / innerHeight;
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(() => {
+              queued = false;
+              root.style.setProperty("--mx", x.toFixed(4));
+              root.style.setProperty("--my", y.toFixed(4));
+            });
+          },
+          { passive: true },
+        );
+      }
+
+      // Figures hydrate only when scrolled to, and each one's module is its
+      // own chunk. If any of this fails the drawing is still there — nothing
+      // was removed to make room for it.
+      const loaders = {
+        shadow: () => import("../visuals/shadow"),
+        timeline: () => import("../visuals/timeline"),
+        npec: () => import("../visuals/npec"),
+      };
+
+      for (const [id, load] of Object.entries(loaders)) {
+        const host = document.querySelector(`[data-fig="${id}"]`);
+        const svg = host?.querySelector("svg");
+        if (!svg) continue;
+        const readout = host!.querySelector(`[data-readout="${id}"]`);
+        new IntersectionObserver(
+          (entries, obs) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              obs.disconnect();
+              load()
+                .then((m) => m.attach(svg as any, readout as any))
+                .catch(() => {
+                  /* The static drawing stands. Nothing to recover. */
+                });
+            }
+          },
+          { rootMargin: "200px" },
+        ).observe(svg);
       }
     </script>
   </body>

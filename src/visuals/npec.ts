@@ -39,7 +39,9 @@ export function render(d: NpecData): string {
       const ink = t > 0.55 ? "oklch(0.97 0.004 250)" : "var(--ink)";
       const failed = r.success_rate < 1;
       return (
-        `<g transform="translate(${cx} ${cy})">` +
+        `<g class="np-cell" transform="translate(${cx} ${cy})"` +
+        ` data-kp="${r.kp}" data-ki="${r.ki}" data-kd="${r.kd}"` +
+        ` data-settling="${r.settling}" data-success="${r.success_rate}" data-error="${r.final_error}">` +
         `<rect width="${cell}" height="${cell}" fill="${fill}"${failed ? ' stroke="var(--warn)" stroke-width="2.5" stroke-dasharray="6 4"' : ""}/>` +
         `<text x="10" y="26" font-size="19" fill="${ink}" font-family="var(--font-mono)">${Math.round(r.settling)}</text>` +
         `<text x="10" y="${cell - 34}" font-size="15" fill="${ink}" opacity="0.8" font-family="var(--font-mono)">kp ${r.kp}</text>` +
@@ -81,7 +83,33 @@ ${dots}
 </svg>`;
 }
 
-export function attach(): void {
-  /* The grid is a table of results, not an animation. Hover titles are native
-     SVG <title>, so there is nothing to wire up. */
+/**
+ * The grid is a table of results, not an animation. What the pointer adds is
+ * the full row for whichever cell it is over — native <title> tooltips are
+ * still there for keyboard and screen-reader users, but they arrive after a
+ * delay and only one line at a time.
+ */
+export function attach(svg: SVGSVGElement, readout?: HTMLElement | null): void {
+  if (!readout) return;
+  const cells = svg.querySelectorAll<SVGGElement>(".np-cell");
+  if (!cells.length) return;
+
+  for (const cell of cells) {
+    const show = () => {
+      const g = cell.dataset;
+      const settled = Number(g.success) >= 1;
+      readout.textContent =
+        `kp ${g.kp} · ki ${g.ki} · kd ${g.kd} — ` +
+        (settled
+          ? `settles in ${Math.round(Number(g.settling))} steps, final error ${Number(g.error).toExponential(1)} mm`
+          : `never settles reliably (success rate ${g.success})`);
+    };
+    cell.addEventListener("pointerenter", show);
+    // Focus, not just hover, so the readout is reachable without a pointer.
+    cell.addEventListener("focus", show);
+    cell.setAttribute("tabindex", "0");
+  }
+  svg.addEventListener("pointerleave", () => {
+    readout.textContent = "";
+  });
 }

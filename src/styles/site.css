@@ -1,55 +1,96 @@
-@layer reset, base, page;
+@layer reset, base, light, page, motion;
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
-  body, h1, h2, h3, p, figure, figcaption, dl, dd { margin: 0; }
+  body, h1, h2, h3, p, figure, figcaption, dl, dd, ol, ul { margin: 0; }
+  ol, ul { padding: 0; list-style: none; }
   img, svg { display: block; max-width: 100%; }
 }
 
 @layer base {
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
   body {
-    background: var(--paper);
+    background: var(--ground);
     color: var(--ink);
     font-family: var(--font-display);
     font-size: var(--step-0);
     line-height: 1.55;
+    font-variation-settings: "opsz" 16, "wdth" 100, "wght" 400;
     -webkit-font-smoothing: antialiased;
     text-wrap: pretty;
+    overflow-x: hidden;
   }
 
-  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a { color: var(--signal); text-decoration-thickness: 1px; text-underline-offset: 4px; }
   a:hover { color: var(--ink); }
-
-  /* Visible focus that survives a dark-on-light page. Never remove this:
-     the whole page is links and it is how a keyboard reader navigates. */
   :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
 
   .sr-only {
-    position: absolute; width: 1px; height: 1px;
-    padding: 0; margin: -1px; overflow: hidden;
-    clip-path: inset(50%); white-space: nowrap; border: 0;
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
   }
 
-  .shell {
-    max-width: var(--shell);
-    margin-inline: auto;
-    padding-inline: var(--pad-x);
-  }
+  .shell { max-width: var(--shell); margin-inline: auto; padding-inline: var(--pad-x); }
 
-  .mono, .num {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-  }
+  .mono, .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
   .num { font-weight: 500; }
-
   .tag {
-    font-family: var(--font-mono);
-    font-size: var(--step--2);
-    letter-spacing: 0.08em;
-    color: var(--ink-soft);
+    font-family: var(--font-mono); font-size: var(--step--2);
+    letter-spacing: 0.08em; color: var(--ink-soft);
   }
+}
+
+/* ---------------------------------------------------------------------------
+   THE LIGHT
+
+   --mx/--my are written by one pointermove handler and read here. Nothing
+   else on the page needs JavaScript to respond to the cursor: this layer
+   turns two numbers into a light source, and every effect below is a
+   consequence of it rather than a separate script.
+   --------------------------------------------------------------------------- */
+@layer light {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -20vmax;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      38vmax 38vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      oklch(0.80 0.15 85 / 0.13),
+      oklch(0.80 0.15 85 / 0.045) 42%,
+      transparent 68%
+    );
+    /* No transition on the gradient itself — it tracks the pointer directly,
+       and easing a light source makes it feel laggy rather than smooth. */
+  }
+
+  /* A hairline grid, lit only where the light falls. It is the drawing-sheet
+     rule from the CV work, except it is now a thing the light reveals. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(to right, var(--rule) 0 1px, transparent 1px 88px),
+      repeating-linear-gradient(to bottom, var(--rule) 0 1px, transparent 1px 88px);
+    opacity: 0.5;
+    -webkit-mask-image: radial-gradient(
+      30vmax 30vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      #000 0%, transparent 72%
+    );
+    mask-image: radial-gradient(
+      30vmax 30vmax at calc(var(--mx) * 100%) calc(var(--my) * 100%),
+      #000 0%, transparent 72%
+    );
+  }
+
+  /* Everything real sits above the light. */
+  body > * { position: relative; z-index: 1; }
 }
 
 @layer page {
@@ -57,162 +98,250 @@
   .bar {
     display: flex; flex-wrap: wrap; gap: var(--gap-xs);
     justify-content: space-between; align-items: center;
-    padding-block: 0.85rem;
+    padding-block: 1rem;
     border-bottom: 1px solid var(--rule);
   }
 
-  /* --- hero: the one place the page raises its voice ----------------- */
-  .hero { padding-block: clamp(2.5rem, 7vw, 4.5rem) clamp(2rem, 5vw, 3rem); }
+  /* --- hero --------------------------------------------------------- */
+  .hero { padding-block: clamp(3rem, 9vw, 7rem) clamp(2rem, 5vw, 3.5rem); }
   .hero__name {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    color: var(--ink);
+    font-family: var(--font-mono); font-size: var(--step--1); font-weight: 500;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft);
   }
   .hero__claim {
     font-size: var(--step-4);
-    font-weight: 600;
-    line-height: 1.02;
-    letter-spacing: -0.022em;
-    max-width: 24ch;
-    margin-block: var(--gap-s) var(--gap-m);
+    line-height: 0.96;
+    letter-spacing: -0.03em;
+    max-width: 21ch;
+    margin-block: var(--gap-m) var(--gap-m);
+    /* opsz at the top of its range is what stops a 7rem setting looking like
+       body copy scaled up: the face tightens its spacing and thins its
+       joins at display size. */
+    font-variation-settings: "opsz" 96, "wdth" 100, "wght" 700;
   }
-  .hero__claim em { font-style: normal; color: var(--signal); }
+  /* The lit word. Its weight and width track the pointer, so the headline
+     is never quite the same shape twice — and it is the one element on the
+     page that does this. */
+  .hero__claim em {
+    font-style: normal;
+    color: var(--signal);
+    font-variation-settings:
+      "opsz" 96,
+      "wdth" calc(75 + var(--mx) * 25),
+      "wght" calc(420 + (1 - var(--my)) * 380);
+  }
   .hero__lede { max-width: var(--measure); color: var(--ink-soft); }
 
-  /* Two per row on a phone, one row on a desktop. Explicit counts, never
-     auto-fit: auto-fit silently orphans the last cell when the item count
-     stops dividing evenly, and four links divide badly at most widths. */
   .hero__links {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--gap-xs);
-    margin-block: var(--gap-m) var(--gap-s);
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gap-xs); margin-block: var(--gap-m) var(--gap-s);
   }
   .hero__links a {
-    display: flex; align-items: center;
-    min-height: 44px;               /* thumb-sized, not mouse-sized */
-    padding-inline: 0.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    min-height: 48px; padding-inline: 0.85rem;
     border: 1px solid var(--rule-firm);
-    color: var(--ink);
-    text-decoration: none;
-    font-size: var(--step--1);
+    color: var(--ink); text-decoration: none;
+    font-family: var(--font-mono); font-size: var(--step--1);
+    background: transparent;
+    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
   }
-  .hero__links a:hover { border-color: var(--signal); color: var(--signal); }
-
+  .hero__links a::after { content: "\2197"; color: var(--ink-soft); }
+  .hero__links a:hover {
+    background: var(--signal-dim); border-color: var(--signal); color: var(--signal);
+  }
+  .hero__links a:hover::after { color: var(--signal); }
   @media (min-width: 46rem) {
-    .hero__links { display: flex; gap: var(--gap-m); }
-    .hero__links a {
-      min-height: 0; padding: 0 0 2px;
-      border: 0; border-bottom: 1px solid var(--rule-firm);
-      font-size: var(--step-0);
-    }
+    .hero__links { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   }
 
-  /* A measuring edge rather than a divider. */
-  .ticks {
-    height: 9px;
-    border-top: 1px solid var(--rule-firm);
-    background-image: repeating-linear-gradient(to right,
-      var(--rule-firm) 0 1px, transparent 1px 40px);
-    background-size: 100% 5px;
-    background-repeat: no-repeat;
-  }
-
-  /* --- project ------------------------------------------------------- */
-  .project { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  /* --- project ------------------------------------------------------ */
+  .project { padding-block: clamp(3rem, 8vw, 6rem); border-top: 1px solid var(--rule); }
   .project__head {
-    display: flex; flex-wrap: wrap; gap: var(--gap-xs);
+    display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-m);
     justify-content: space-between; align-items: baseline;
-    padding-bottom: 0.9rem;
+  }
+  .project__index {
+    font-family: var(--font-mono); font-size: var(--step--2);
+    color: var(--signal); letter-spacing: 0.1em;
   }
   .project__finding {
     font-size: var(--step-2);
-    font-weight: 600;
-    line-height: 1.12;
-    letter-spacing: -0.015em;
-    max-width: 36ch;
+    line-height: 1.06;
+    letter-spacing: -0.022em;
+    max-width: 30ch;
     margin-block: var(--gap-m) var(--gap-s);
+    font-variation-settings: "opsz" 48, "wdth" 92, "wght" 620;
   }
   .project__body { max-width: var(--measure); color: var(--ink-soft); }
+  .project__body + .project__body { margin-top: var(--gap-s); }
 
   .project__grid { display: grid; gap: var(--gap-m); margin-top: var(--gap-m); }
-  @media (min-width: 56rem) {
-    .project__grid { grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: var(--gap-l); align-items: start; }
-    .project__grid--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 22rem); }
+  @media (min-width: 60rem) {
+    .project__grid { grid-template-columns: minmax(0, 23rem) minmax(0, 1fr); gap: var(--gap-l); align-items: start; }
+    .project__grid--wide { grid-template-columns: minmax(0, 1fr) minmax(0, 23rem); }
   }
 
   /* --- stats -------------------------------------------------------- */
-  .stats { margin: 0; }
   .stats > div {
     display: flex; justify-content: space-between; align-items: baseline;
-    gap: var(--gap-s);
-    padding-block: 0.55rem;
+    gap: var(--gap-s); padding-block: 0.6rem;
     border-bottom: 1px solid var(--rule);
   }
   .stats dt { font-size: var(--step--1); color: var(--ink-soft); }
   .stats dd {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-weight: 500;
+    margin: 0; font-family: var(--font-mono); font-weight: 500;
     font-variant-numeric: tabular-nums;
   }
   .stats dd[data-signal] { color: var(--signal); }
   .stats dd[data-warn]   { color: var(--warn); }
 
-  /* --- figure ------------------------------------------------------- */
-  figure { display: flex; flex-direction: column; gap: var(--gap-xs); }
-  figcaption { font-size: var(--step--2); font-family: var(--font-mono);
-               color: var(--ink-soft); line-height: 1.5; }
-
-  .caveat {
-    padding: var(--gap-s) 0 var(--gap-s) var(--gap-s);
-    border-left: 3px solid var(--warn);
-    max-width: 60ch;
+  /* --- figures ------------------------------------------------------ */
+  figure {
+    display: flex; flex-direction: column; gap: var(--gap-xs);
+    background: var(--ground-2);
+    border: 1px solid var(--rule);
+    padding: var(--gap-s);
   }
+  figure svg { width: 100%; height: auto; }
+  figcaption { font-size: var(--step--2); font-family: var(--font-mono); color: var(--ink-soft); line-height: 1.6; }
 
-  /* --- short entries, the ones with no visual ----------------------- */
-  .brief { padding-block: var(--gap-m); border-bottom: 1px solid var(--rule); }
-  .brief h2 { font-size: var(--step-1); font-weight: 600; letter-spacing: -0.01em; }
-  .brief p { max-width: var(--measure); color: var(--ink-soft); margin-top: var(--gap-xs); }
+  /* The live readout. It replaces a static caption while the pointer is over
+     a figure, so the figure answers questions instead of just being looked
+     at. Reserved height, so nothing reflows when it fills. */
+  .readout {
+    font-family: var(--font-mono); font-size: var(--step--2);
+    color: var(--signal); min-height: 1.6em; letter-spacing: 0.04em;
+  }
+  .readout:empty::before { content: "hover the figure to read values"; color: var(--ink-soft); opacity: 0.7; }
 
-  footer { padding-block: var(--gap-m) var(--gap-l); color: var(--ink-soft); }
-}
-
-@layer page {
-  /* --- figure furniture -------------------------------------------- */
   .chips { display: flex; flex-wrap: wrap; gap: var(--gap-xs) var(--gap-s); }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono); font-size: var(--step--2);
-    color: var(--ink-soft);
+    font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft);
   }
-  /* The border is not decoration. Neutral is the palest fill and the most
-     common answer in the recording; without an edge its 12px swatch is
-     invisible against the paper. */
+  /* Not decoration: Neutral is the palest fill and the most common answer in
+     the recording, and without an edge its 12px swatch disappears. */
   .chip i { width: 12px; height: 12px; border: 1px solid var(--rule-firm); }
 
-  .note { max-width: 58ch; line-height: 1.7; margin-top: var(--gap-s); }
+  .note { max-width: 58ch; line-height: 1.75; margin-top: var(--gap-s); }
 
-  /* --- one trunk, three targets ------------------------------------ */
-  .topo {
-    list-style: none; margin: var(--gap-s) 0 0; padding: 0;
-    display: grid; gap: 1px; background: var(--rule);
-    border: 1px solid var(--rule);
+  .caveat {
+    margin-top: var(--gap-s); padding: var(--gap-s);
+    border-left: 3px solid var(--warn); background: var(--warn-dim);
+    max-width: 58ch;
   }
+  .caveat cite {
+    display: block; margin-top: 0.5rem; font-style: normal;
+    font-family: var(--font-mono); font-size: var(--step--2);
+    letter-spacing: 0.08em; color: var(--ink-soft);
+  }
+
+  /* --- one trunk, three targets ------------------------------------- */
+  .topo { display: grid; gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: var(--gap-s); }
   .topo li {
-    background: var(--paper); padding: 0.6rem 0.75rem;
+    background: var(--ground-2); padding: 0.65rem 0.8rem;
     display: flex; flex-wrap: wrap; gap: 0.15rem var(--gap-s);
     justify-content: space-between; align-items: baseline;
   }
-  .topo b { font-size: var(--step--1); }
+  .topo b { font-size: var(--step--1); font-variation-settings: "wght" 620; }
   .topo span { font-family: var(--font-mono); font-size: var(--step--2); color: var(--ink-soft); }
-  .topo__trunk { background: var(--signal-wash); }
+  .topo__trunk { background: var(--signal-dim) !important; }
   @media (min-width: 46rem) {
     .topo { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .topo__trunk { grid-column: 1 / -1; }
   }
 
-  figure svg { width: 100%; height: auto; }
+  /* --- short entries ------------------------------------------------ */
+  .brief { padding-block: var(--gap-m); border-top: 1px solid var(--rule); }
+  .brief h2 { font-size: var(--step-1); font-variation-settings: "opsz" 32, "wdth" 94, "wght" 620; }
+  .brief p { max-width: var(--measure); color: var(--ink-soft); margin-top: var(--gap-xs); }
+
+  footer { padding-block: var(--gap-m) var(--gap-xl); border-top: 1px solid var(--rule); color: var(--ink-soft); }
+}
+
+/* ---------------------------------------------------------------------------
+   MOTION
+
+   Scroll reaction is done with native CSS scroll-driven animations, not a
+   scroll library and not a wheel handler. That means the page never takes
+   the scrollbar away from the reader, costs no JavaScript, and degrades to
+   "everything is simply visible" wherever `animation-timeline` is missing.
+   --------------------------------------------------------------------------- */
+@layer motion {
+  /* Pointer-driven dimming. Looking at one project quiets the others, which
+     is the cursor "highlighting an area" without a follower element. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    #work:has(.project:hover) .project:not(:hover) { opacity: 0.42; }
+    .project { transition: opacity 260ms ease; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: view()) {
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(2.2rem); }
+        to   { opacity: 1; transform: none; }
+      }
+      /* The findings arrive narrow and light and settle into their real
+         shape as the section enters. The axes are the animation — no
+         fade-and-slide, which is the tell everyone uses. */
+      @keyframes settle {
+        from { font-variation-settings: "opsz" 48, "wdth" 75, "wght" 260; opacity: 0.55; letter-spacing: 0.02em; }
+        to   { font-variation-settings: "opsz" 48, "wdth" 92, "wght" 620; opacity: 1; letter-spacing: -0.022em; }
+      }
+      /* A figure is uncovered rather than faded in: the wipe reads as a
+         print coming up, which is the metaphor the whole palette is built on. */
+      @keyframes develop {
+        from { clip-path: inset(0 0 100% 0); }
+        to   { clip-path: inset(0 0 0 0); }
+      }
+      @keyframes rule-draw {
+        from { transform: scaleX(0); }
+        to   { transform: scaleX(1); }
+      }
+
+      .project__finding {
+        animation: settle linear both;
+        animation-timeline: view();
+        animation-range: entry 8% cover 34%;
+      }
+      figure {
+        animation: develop linear both;
+        animation-timeline: view();
+        animation-range: entry 12% cover 40%;
+      }
+      .project__body, .stats, .note, .brief {
+        animation: rise linear both;
+        animation-timeline: view();
+        animation-range: entry 4% cover 30%;
+      }
+      .project { border-top-color: transparent; }
+      .project::before {
+        content: "";
+        display: block;
+        height: 1px;
+        background: var(--signal);
+        transform-origin: left;
+        margin-bottom: clamp(3rem, 8vw, 6rem);
+        animation: rule-draw linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 60%;
+      }
+
+      /* The reading-progress bar is the scroll position, not an ornament. */
+      @keyframes progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      .progress {
+        position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 5;
+        background: var(--signal); transform-origin: left;
+        animation: progress linear both;
+        animation-timeline: scroll(root block);
+      }
+    }
+  }
+
+  /* Without scroll-driven animation support, or under reduced motion, there
+     is no progress bar to show a position nothing is animating. */
+  .progress { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    @supports (animation-timeline: scroll()) { .progress { display: block; } }
+  }
 }
