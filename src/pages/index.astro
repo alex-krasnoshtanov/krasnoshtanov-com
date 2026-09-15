@@ -418,6 +418,53 @@ const site = "https://krasnoshtanov.com";
         );
       }
 
+      // The timeline pins and the recording travels past you. Which mechanism
+      // moves it depends on the browser, and this decides which:
+      //
+      //   native — the browser has scroll-driven animation, so CSS does it on
+      //            the compositor and nothing here runs again.
+      //   js     — it does not, so one scroll handler writes the same
+      //            transform. Firefox has no view-timeline as of today, and a
+      //            recruiter opens this page in whatever they already have.
+      //
+      // Terms are the CSS's: wide screens, and never under reduced motion — a
+      // sideways pan driven by vertical scroll is exactly the kind of movement
+      // that preference is asking us not to make. With this script blocked,
+      // the attribute is never set, the pin never engages, and the section is
+      // the draggable rail it is without any of this.
+      const runway = document.querySelector<HTMLElement>(".runway");
+      const track = runway?.querySelector<HTMLElement>(".pan");
+
+      if (runway && track && !still && matchMedia("(min-width: 64rem)").matches) {
+        const native = CSS.supports("animation-timeline", "view()");
+        runway.dataset.pan = native ? "native" : "js";
+
+        if (!native) {
+          let queued = false;
+          const place = () => {
+            queued = false;
+            // Measured, not computed from --tl-aspect: the element is right
+            // there, and a number read off the DOM cannot drift from it.
+            const distance = track.scrollWidth - innerWidth;
+            const span = runway.offsetHeight - innerHeight;
+            if (distance <= 0 || span <= 0) return;
+            const through = Math.min(1, Math.max(0, (scrollY - runway.offsetTop) / span));
+            track.style.setProperty("transform", `translateX(${(-distance * through).toFixed(1)}px)`);
+          };
+          addEventListener(
+            "scroll",
+            () => {
+              if (queued) return;
+              queued = true;
+              requestAnimationFrame(place);
+            },
+            { passive: true },
+          );
+          addEventListener("resize", place, { passive: true });
+          place();
+        }
+      }
+
       // Figures hydrate only when scrolled to, each module its own chunk. If
       // any of this fails the drawing is still there — nothing was removed to
       // make room for it.
