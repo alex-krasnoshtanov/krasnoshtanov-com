@@ -9,3 +9,7 @@ design/krasnoshtanov-site.html
 
 # Throwaway build used only for the clickable preview artifact.
 .preview/
+
+# Playwright MCP writes explicitly-named screenshots to the workspace root.
+*.png
+!public/*.png
