@@ -454,8 +454,12 @@ const site = "https://krasnoshtanov.com";
       const runway = document.querySelector<HTMLElement>(".runway");
       const track = runway?.querySelector<HTMLElement>(".pan");
 
+      // One question, asked once, that decides every motion fallback below:
+      // does this browser have scroll-driven animation at all? Firefox does
+      // not, as of today.
+      const native = CSS.supports("animation-timeline", "view()");
+
       if (runway && track && !still && matchMedia("(min-width: 64rem)").matches) {
-        const native = CSS.supports("animation-timeline", "view()");
         runway.dataset.pan = native ? "native" : "js";
 
         if (!native) {
@@ -482,6 +486,90 @@ const site = "https://krasnoshtanov.com";
           addEventListener("resize", place, { passive: true });
           place();
         }
+      }
+
+      // The rest of the motion layer, for browsers without the feature.
+      //
+      // Every reveal in @layer motion — the rise, the settling headings, the
+      // figures developing, the training curve drawing itself — is a
+      // scroll-driven animation, so on Firefox none of it happened at all and
+      // the page was visibly more alive in Chrome than in Firefox.
+      //
+      // An observer gives the same states by transition instead. It plays once
+      // on arrival rather than scrubbing with the scrollbar, which is a real
+      // difference and an invisible one for a fade and a rise.
+      if (!native && !still) {
+        const root = document.documentElement;
+        const seen = (el: Element) => el.setAttribute("data-seen", "");
+
+        // What gets revealed, and how. The CSS has no say in the membership of
+        // this list: it styles [data-reveal], which only this loop writes. An
+        // earlier version let the stylesheet hide elements BY TYPE while this
+        // code skipped some of them, so the skipped ones were hidden by CSS
+        // and never revealed by anyone — three card diagrams and the whole
+        // timeline, clipped to nothing in Firefox and nowhere else.
+        const REVEALS: [string, string][] = [
+          [".pf-line", "draw"],
+          [".pf-zero, .pf-best", "pop"],
+          [".project__finding, .card__finding", "settle"],
+          ["figure", "develop"],
+          [".project__body, .stats, .note", "rise"],
+        ];
+
+        root.dataset.motion = "js";
+
+        const io = new IntersectionObserver(
+          (entries, obs) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              obs.unobserve(entry.target);
+              seen(entry.target);
+            }
+          },
+          { rootMargin: "0px 0px -10% 0px" },
+        );
+
+        // Read every position first, write afterwards. Interleaving them makes
+        // the browser re-layout once per element.
+        const pending: [HTMLElement, string, boolean][] = [];
+        for (const [selector, kind] of REVEALS) {
+          for (const el of document.querySelectorAll<HTMLElement>(selector)) {
+            // A rail scrolls on its own axis and the pinned timeline already
+            // has the pan for its motion. Neither is tagged, so neither can be
+            // hidden by anything above.
+            if (el.closest(".rail") || el.classList.contains("travel")) continue;
+            pending.push([el, kind, el.getBoundingClientRect().top < innerHeight]);
+          }
+        }
+
+        for (const [el, kind, onScreen] of pending) {
+          el.setAttribute("data-reveal", kind);
+          // Anything already on screen is marked in the same breath and never
+          // hidden. Hiding what someone is already looking at and then
+          // revealing it is a flash, and a flash is worse than no animation.
+          if (onScreen) seen(el);
+          else io.observe(el);
+        }
+
+        // The progress bar is the one piece that is not a reveal: it reports
+        // position continuously, so it needs the scroll itself, not an
+        // observer. CSS reads --scrolled and scales the bar.
+        let queued = false;
+        const report = () => {
+          queued = false;
+          const span = document.documentElement.scrollHeight - innerHeight;
+          root.style.setProperty("--scrolled", span > 0 ? (scrollY / span).toFixed(4) : "0");
+        };
+        addEventListener(
+          "scroll",
+          () => {
+            if (queued) return;
+            queued = true;
+            requestAnimationFrame(report);
+          },
+          { passive: true },
+        );
+        report();
       }
 
       // Figures hydrate only when scrolled to, each module its own chunk. If
