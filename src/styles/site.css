@@ -604,7 +604,11 @@
   .rail .project__body,
   .rail .stats,
   .rail .note,
-  .rail .card__finding {
+  .rail .card__finding,
+  /* The pinned timeline's own figure. Its motion is the pan; a clip-path
+     reveal on top of that is a second thing happening to the same element,
+     and the JS path skips it for the same reason. */
+  .travel {
     animation: none;
   }
 
@@ -630,46 +634,55 @@
      unseen state, so nothing on screen is hidden and then shown again.
      --------------------------------------------------------------------------- */
   @media (prefers-reduced-motion: no-preference) {
-    [data-motion="js"] :is(.project__body, .stats, .note) {
-      transition: opacity 620ms ease, transform 620ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    }
-    [data-motion="js"] :is(.project__body, .stats, .note):not([data-seen]) {
-      opacity: 0;
-      transform: translateY(1.6rem);
-    }
+    /*
+      Every rule here keys off data-reveal, which ONLY the script writes, and
+      only onto elements it has taken responsibility for revealing.
 
-    [data-motion="js"] figure { transition: clip-path 760ms cubic-bezier(0.2, 0.7, 0.2, 1); }
-    [data-motion="js"] figure:not([data-seen]) { clip-path: inset(0 0 100% 0); }
+      That is the whole point and it is worth stating plainly, because the
+      first version of this did not do it and broke the page. It hid elements
+      by type — `figure:not([data-seen])` — while the script skipped some of
+      those same elements (anything inside a rail, and the pinned timeline).
+      Skipped meant never marked, never marked meant never revealed, and three
+      card diagrams and the timeline were clipped to nothing, permanently, in
+      Firefox only. Two selectors describing "the same" set, drifting apart.
 
-    [data-motion="js"] :is(.project__finding, .card__finding) {
-      transition: font-variation-settings 700ms ease, opacity 700ms ease;
+      Now there is one set: the script's. If it does not tag an element, no
+      rule below can touch it.
+    */
+    [data-reveal] { transition-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+    [data-reveal="rise"] { transition-property: opacity, transform; transition-duration: 620ms; }
+    [data-reveal="rise"]:not([data-seen]) { opacity: 0; transform: translateY(1.6rem); }
+
+    [data-reveal="develop"] { transition-property: clip-path; transition-duration: 760ms; }
+    [data-reveal="develop"]:not([data-seen]) { clip-path: inset(0 0 100% 0); }
+
+    [data-reveal="settle"] {
+      transition-property: font-variation-settings, opacity; transition-duration: 700ms;
     }
-    [data-motion="js"] :is(.project__finding, .card__finding):not([data-seen]) {
+    [data-reveal="settle"]:not([data-seen]) {
       font-variation-settings: "opsz" 48, "wdth" 92, "wght" 250;
       opacity: 0.5;
     }
 
     /* stroke-dasharray lives in the @supports block above, so it has to be
-       restated here — without it there is no dash to offset and the curve
-       simply appears. pathLength="1" is on the path itself, which is what
-       lets the dash be a fraction with nothing measuring it. */
-    [data-motion="js"] .pf-line {
+       restated — without a dash there is nothing to offset and the curve just
+       appears. pathLength="1" is on the path itself, which is what lets the
+       dash be a fraction with nothing measuring it. */
+    [data-reveal="draw"] {
       stroke-dasharray: 1;
-      transition: stroke-dashoffset 1300ms cubic-bezier(0.3, 0.6, 0.2, 1);
+      transition-property: stroke-dashoffset; transition-duration: 1300ms;
     }
-    [data-motion="js"] .pf-line:not([data-seen]) { stroke-dashoffset: 1; }
+    [data-reveal="draw"]:not([data-seen]) { stroke-dashoffset: 1; }
 
-    [data-motion="js"] :is(.pf-zero, .pf-best) {
-      transform-box: fill-box;
-      transform-origin: center;
-      transition: opacity 420ms ease, transform 420ms cubic-bezier(0.2, 0.9, 0.3, 1.5);
+    [data-reveal="pop"] {
+      transform-box: fill-box; transform-origin: center;
+      transition-property: opacity, transform; transition-duration: 420ms;
     }
-    [data-motion="js"] :is(.pf-zero, .pf-best):not([data-seen]) {
-      opacity: 0;
-      transform: scale(0.2);
-    }
+    [data-reveal="pop"]:not([data-seen]) { opacity: 0; transform: scale(0.2); }
 
-    /* The bar reports a scroll that now has something reporting it. */
+    /* The bar is the exception: not a reveal, and so not tagged. It reports
+       position continuously from --scrolled, written on scroll. */
     [data-motion="js"] .progress {
       display: block;
       transform: scaleX(var(--scrolled, 0));

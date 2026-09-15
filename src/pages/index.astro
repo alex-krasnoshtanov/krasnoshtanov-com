@@ -502,13 +502,19 @@ const site = "https://krasnoshtanov.com";
         const root = document.documentElement;
         const seen = (el: Element) => el.setAttribute("data-seen", "");
 
-        const targets = [
-          ...document.querySelectorAll<HTMLElement>(
-            ".project__finding, .card__finding, figure, .project__body, .stats, .note, .pf-line, .pf-zero, .pf-best",
-          ),
-          // Rails opt out for the same reason they do in CSS, and the pinned
-          // timeline has the pan for its motion already.
-        ].filter((el) => !el.closest(".rail") && !el.classList.contains("travel"));
+        // What gets revealed, and how. The CSS has no say in the membership of
+        // this list: it styles [data-reveal], which only this loop writes. An
+        // earlier version let the stylesheet hide elements BY TYPE while this
+        // code skipped some of them, so the skipped ones were hidden by CSS
+        // and never revealed by anyone — three card diagrams and the whole
+        // timeline, clipped to nothing in Firefox and nowhere else.
+        const REVEALS: [string, string][] = [
+          [".pf-line", "draw"],
+          [".pf-zero, .pf-best", "pop"],
+          [".project__finding, .card__finding", "settle"],
+          ["figure", "develop"],
+          [".project__body, .stats, .note", "rise"],
+        ];
 
         root.dataset.motion = "js";
 
@@ -523,11 +529,25 @@ const site = "https://krasnoshtanov.com";
           { rootMargin: "0px 0px -10% 0px" },
         );
 
-        for (const el of targets) {
-          // Anything already on screen is marked immediately and never hidden.
-          // Hiding what someone is already looking at and then revealing it is
-          // a flash, and a flash is worse than no animation at all.
-          if (el.getBoundingClientRect().top < innerHeight) seen(el);
+        // Read every position first, write afterwards. Interleaving them makes
+        // the browser re-layout once per element.
+        const pending: [HTMLElement, string, boolean][] = [];
+        for (const [selector, kind] of REVEALS) {
+          for (const el of document.querySelectorAll<HTMLElement>(selector)) {
+            // A rail scrolls on its own axis and the pinned timeline already
+            // has the pan for its motion. Neither is tagged, so neither can be
+            // hidden by anything above.
+            if (el.closest(".rail") || el.classList.contains("travel")) continue;
+            pending.push([el, kind, el.getBoundingClientRect().top < innerHeight]);
+          }
+        }
+
+        for (const [el, kind, onScreen] of pending) {
+          el.setAttribute("data-reveal", kind);
+          // Anything already on screen is marked in the same breath and never
+          // hidden. Hiding what someone is already looking at and then
+          // revealing it is a flash, and a flash is worse than no animation.
+          if (onScreen) seen(el);
           else io.observe(el);
         }
 
